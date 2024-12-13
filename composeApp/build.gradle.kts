@@ -8,7 +8,9 @@ plugins {
 
 kotlin {
     jvm("desktop")
-    
+
+    mingwX64("windows") // Para Windows
+
     sourceSets {
         val desktopMain by getting
         
