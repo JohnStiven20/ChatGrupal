@@ -9,7 +9,6 @@ plugins {
 kotlin {
     jvm("desktop")
 
-    mingwX64("windows") // Para Windows
 
     sourceSets {
         val desktopMain by getting
@@ -23,7 +22,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
         }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)

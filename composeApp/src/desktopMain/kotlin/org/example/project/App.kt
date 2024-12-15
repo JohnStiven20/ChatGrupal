@@ -3,19 +3,19 @@ package org.example.project
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.remember
 import org.example.project.Screen.*
 import org.example.project.ui.chat.ChatScreen
 import org.example.project.ui.nickname.NickNameScreen
-import org.example.project.ui.nickname.NickNameViewModel
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.example.project.ui.nickname.ViewModel
 
 @Composable
-@Preview
+@Preview()
 fun App() {
     MaterialTheme {
 
-        val nickNameViewModel = NickNameViewModel()
+        val nickNameViewModel = ViewModel()
         AppNavigation(nickNameViewModel = nickNameViewModel)
     }
 }
@@ -26,7 +26,7 @@ enum class Screen {
 }
 
 @Composable
-fun AppNavigation(nickNameViewModel: NickNameViewModel) {
+fun AppNavigation(nickNameViewModel: ViewModel) {
 
     val currentScreen = remember { mutableStateOf<Screen>(NickName) }
 
@@ -41,4 +41,12 @@ fun AppNavigation(nickNameViewModel: NickNameViewModel) {
             nickNameViewModel = nickNameViewModel
         )
     }
+}
+
+
+@Composable
+fun Hola() {
+
+
+
 }

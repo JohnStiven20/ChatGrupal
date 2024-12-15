@@ -9,14 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,17 +26,17 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: NickNameViewModel) {
+fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewModel) {
 
     val nickName = nickNameViewModel.nickname.collectAsState().value
 
     Column(
-        modifier = Modifier.fillMaxSize().background(color =  Color.Gray),
+        modifier = Modifier.fillMaxSize().background(color =  Color(0xFF2E3035)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
-        Text("Introduce un Nickname")
+        Text("Introduce un Nickname Stiven")
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -66,3 +64,4 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: NickName
 
     }
 }
+
