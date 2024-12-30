@@ -34,16 +34,10 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
 
     }
 
-    override suspend fun sendMessage(message: String): Result<String?> {
+    override suspend fun sendMessage(message: String) {
         return withContext(dispatchers.io) {
-            try {
                 salida?.writeUTF(message)
                 salida?.flush()
-                val response = entrada?.readUTF()
-                Result.success(response)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
         }
     }
 
@@ -58,6 +52,7 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
             }
         }
     }
+
 
     override suspend fun closeConnection() {
         withContext(dispatchers.io) {

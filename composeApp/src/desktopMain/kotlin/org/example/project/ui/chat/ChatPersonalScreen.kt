@@ -41,8 +41,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -53,28 +55,25 @@ import org.example.project.ui.nickname.ViewModel
 @Composable
 fun ChatPersonal(viewModel: ViewModel, onNavigateBack: () -> Unit) {
 
-    val entrada by viewModel.entrada.collectAsState()
-    val adress by viewModel.nickname.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.startReceivingMessages()
-    }
+    val nombreUsuario by viewModel.nickname.collectAsState()
+    val entradaChat by viewModel.entradaChat.collectAsState()
+    val usuarios by viewModel.nombreUsuario.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         content = {
-            ChatIzquierda(mutableListOf())
+            ChatIzquierda(usuarios, nombreUsuario)
             ChatScreen(
                 onPromtChange = { prompt ->
-                    viewModel.sendMessage(prompt, onProgress = {})
+                    viewModel.sendMessage(prompt)
                 },
                 closeConnection = {
                     onNavigateBack()
                 },
-                entrada = entrada,
-                adress = adress
+                adress = nombreUsuario,
+                entrada = entradaChat
             )
         }
     )
@@ -96,34 +95,45 @@ fun ChatPersonal(viewModel: ViewModel, onNavigateBack: () -> Unit) {
  */
 
 @Composable
-fun ChatIzquierda(users: List<String>) {
+fun ChatIzquierda(clientesNombre: String, nombreUsuario: String) {
 
-    LazyColumn(
-        modifier = Modifier.fillMaxHeight().width(200.dp).background(Color.LightGray)
-            .addLine(color = Color.Black, position = "right", width = 1.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-        content = {
-            item(
-                content = {
-                    Text(
-                        "Chats",
-                        color = Color.Black,
-                        modifier = Modifier.padding(10.dp),
-                        fontSize = 25.sp
-                    )
+    if (clientesNombre.isNotBlank()) {
+
+        val listaNombres = clientesNombre.substring(4).split(",").map { it.trim() }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxHeight().width(200.dp).background(Color.LightGray)
+                .addLine(color = Color.Black, position = "right", width = 1.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+            content = {
+                item(
+                    content = {
+                        Text(
+                            "Chats",
+                            color = Color.Black,
+                            modifier = Modifier.padding(10.dp),
+                            fontSize = 25.sp
+                        )
+                    }
+                )
+
+                item(content =  {
+                    TarjetaUsuario(nombre = "2 DAM", )
+                })
+
+                items(listaNombres) { nombre ->
+                    if (nombre != nombreUsuario) {
+                        TarjetaUsuario(nombre = nombre)
+                    }
                 }
-            )
-
-            items(4) {
-                TarjetaUsuario()
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
-fun TarjetaUsuario() {
+fun TarjetaUsuario(nombre: String = "", onClick: () -> Unit = {}) {
     Card(
         backgroundColor = Color.Gray,
         modifier = Modifier.fillMaxWidth().padding(5.dp).clip(RoundedCornerShape(10.dp))
@@ -134,7 +144,7 @@ fun TarjetaUsuario() {
                 modifier = Modifier.padding(10.dp),
                 contentAlignment = Alignment.Center,
                 content = {
-                    Text("Marcos")
+                    Text(nombre)
                 }
             )
         }
@@ -146,9 +156,10 @@ fun TarjetaUsuario() {
 fun ChatScreen(
     onPromtChange: (String) -> Unit,
     closeConnection: () -> Unit,
+    adress: String,
     entrada: String,
-    adress: String
-) {
+
+    ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -158,15 +169,16 @@ fun ChatScreen(
             ContenidoMensaje(
                 padding = padding,
                 onPromtChange = onPromtChange,
-                entrada = entrada,
-                adress = adress
+                adress = adress,
+                entrada = entrada
             )
         },
         bottomBar = {
             AppBottomBar(
                 onPromtChange = onPromtChange,
-                adress = adress
-            )
+                adress = adress,
+
+                )
         },
         floatingActionButton = {
             BotonFlotante(
@@ -196,22 +208,26 @@ fun AppBar(adress: String) {
 fun ContenidoMensaje(
     padding: PaddingValues,
     onPromtChange: (String) -> Unit,
-    entrada: String,
-    adress: String
+    adress: String,
+    entrada: String
 ) {
 
     val messages = remember { mutableStateListOf<String>() }
     val listState = rememberLazyListState()
 
+    LaunchedEffect(entrada) {
+        if (entrada.isNotBlank()) {
+            val comando = entrada.substring(0, entrada.indexOf(","))
+
+            if (comando == "CHT") {
+                messages.add(entrada)
+            }
+        }
+    }
 
     LaunchedEffect(entrada) {
-
-        val comando = entrada.substring(0, entrada.indexOf(","))
-
-        if (entrada.isNotBlank() && comando == "CHT") {
-            messages.add(entrada)
+        if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
-            onPromtChange("")
         }
     }
 
@@ -221,11 +237,11 @@ fun ContenidoMensaje(
 
             items(messages) { message ->
 
-                val comando = message.substring(0, message.indexOf(","))
+                val comando = message.substring(0, message.indexOf(",")).uppercase()
 
                 if (comando == "CHT") {
 
-                    val indetificador = message.substring(message.indexOf(",") + 1, message.lastIndexOf(",") - 1).trim()
+                    val indetificador = message.substring(message.indexOf(",") + 1, message.lastIndexOf(",")).trim()
                     val mensaje = message.substring(message.lastIndexOf(",") + 1, message.length)
 
                     if (indetificador == adress) {
@@ -233,7 +249,7 @@ fun ContenidoMensaje(
                             text = mensaje,
                             nicknamee = indetificador,
                             alignment = Alignment.TopEnd,
-                            alignmentText = Alignment.End,
+                            alignmentText = Alignment.Start,
                             color = Color.Blue
                         )
                     } else {
@@ -294,39 +310,52 @@ fun AppBottomBar(onPromtChange: (String) -> Unit, adress: String) {
     var texto by remember { mutableStateOf("") }
 
     Row(
-        modifier = Modifier.fillMaxWidth().background(Color.Gray).padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Gray)
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         content = {
-
             TextField(
-                modifier = Modifier.fillMaxWidth().weight(1f).padding(end = 10.dp)
-                    .onKeyEvent(onKeyEvent = { keyEvent ->
-                        if (keyEvent.key == Key.Enter) {
-                            texto = "MSG,$texto"
-                            onPromtChange(texto)
-                            texto = ""
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(end = 10.dp)
+                    .onKeyEvent { keyEvent ->
+
+                        if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
+                            if (texto.isNotBlank()) {
+                                onPromtChange("MSG,$texto")
+                                texto = ""
+
+                            }
                             true
                         } else {
                             false
                         }
-                    }),
-                shape = RoundedCornerShape(10.dp),
+                    },
                 value = texto,
-                onValueChange = {
-                    texto = it
-                },
+                onValueChange = { texto = it },
+                placeholder = { Text("Escribe un mensaje...") },
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.colors(
                     unfocusedLabelColor = Color.Transparent,
                     focusedLabelColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                ),
-                singleLine = true
+                    focusedIndicatorColor = Color.Transparent
+                )
             )
 
             IconButton(
-                modifier = Modifier.clip(shape = RoundedCornerShape(25.dp))
-                    .background(Color.DarkGray), onClick = {
+                modifier = Modifier
+                    .clip(RoundedCornerShape(25.dp))
+                    .background(Color.DarkGray),
+                onClick = {
+                    if (texto.isNotBlank()) {
+                        onPromtChange("MSG,$texto")
+                        texto = "" // Limpia el campo después de enviar
+                    }
                 },
                 content = {
                     Icon(

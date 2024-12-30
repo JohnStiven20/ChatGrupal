@@ -19,54 +19,57 @@ class ViewModel(
     val nickname: StateFlow<String> = _nickName
     private var _entrada = MutableStateFlow("")
     var entrada: StateFlow<String> = _entrada
+    private var _entradaChat = MutableStateFlow("")
+    var entradaChat: StateFlow<String> = _entradaChat
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private var _nombreUsuario = MutableStateFlow("")
+    var nombreUsuario: StateFlow<String> = _nombreUsuario
 
-    private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected
 
-    fun connection(dirrecion: String = "192.168.0.18", puerto: Int = 4444) {
+    init {
+        connection()
+    }
+
+    private fun connection(dirrecion: String = "192.168.0.18", puerto: Int = 4444) {
         viewModelScope.launch(dispatchers.io) {
+
             try {
                 socketRepository.connection(dirrecion, puerto)
-                _isConnected.value = true
             } catch (e: Exception) {
                 e.printStackTrace()
-                _isConnected.value = false
             }
         }
     }
 
-    fun sendMessage(message: String, onProgress: (Boolean) -> Unit) {
+    fun sendMessage(message: String) {
         viewModelScope.launch() {
             try {
-                _isLoading.update { true }
-                val result = socketRepository.sendMessage(message)
-                result.onSuccess { response ->
-                        _entrada.update { response?.trim() ?: "NOK" }
-                        onProgress(true)
-                }.onFailure { exception ->
-                    exception.printStackTrace()
-                    _entrada.update { "Error: ${exception.message}" }
-                    onProgress(false)
-                }
-
-            } finally {
-                _isLoading.update { false }
+                socketRepository.sendMessage(message)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
-
-    fun startReceivingMessages() {
-        viewModelScope.launch() {
+    fun recibirMensaje(onMessageReceived: (String) -> Unit) {
+        viewModelScope.launch {
             try {
                 while (true) {
                     val result = socketRepository.receiveMessage()
+
                     result.onSuccess { response ->
-                        // Actualizamos la entrada con cualquier mensaje que llegue
-                        _entrada.update { response ?: "Mensaje nulo o error" }
+                        if (!response.isNullOrBlank()) { // Ignora mensajes vacíos
+
+                            val comando = response.substring(0, response.indexOf(",")).uppercase()
+
+                            if (comando == "CHT") {
+                                _entradaChat.update { response }
+                            } else if (comando == "OK" || comando == "NOK") {
+                                _entrada.update { response.uppercase() }
+                            } else if (comando == "LST") {
+                                _nombreUsuario.update { response}
+                            }
+                        }
                     }.onFailure { exception ->
                         exception.printStackTrace()
                     }
@@ -77,10 +80,18 @@ class ViewModel(
         }
     }
 
+
+    fun onChangeChat(entrada: String) {
+        this._entradaChat.update { entrada }
+    }
+
+    fun onChangeEntrada(entrada: String) {
+        this._entrada.update { entrada }
+    }
+
     fun closeConnection() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch() {
             socketRepository.closeConnection()
-            _isConnected.value = false
         }
     }
 
@@ -91,6 +102,5 @@ class ViewModel(
     fun getInnerAddress(): String {
         return socketRepository.getInnerAddress()
     }
-
 
 }

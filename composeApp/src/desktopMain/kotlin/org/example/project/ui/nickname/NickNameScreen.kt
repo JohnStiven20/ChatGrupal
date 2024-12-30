@@ -26,7 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isPrimaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import javax.swing.JOptionPane
 
 
 @Composable
@@ -34,13 +38,7 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
 
     val nickName by nickNameViewModel.nickname.collectAsState()
     val entrada by nickNameViewModel.entrada.collectAsState()
-    val isConnected by nickNameViewModel.isConnected.collectAsState()
-
-    var showError  by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        nickNameViewModel.connection()
-    }
+    var showError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize().background(color = Color(0xFF2E3035)),
@@ -61,7 +59,17 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
                     1.5.dp,
                     MaterialTheme.colorScheme.onBackground,
                     RoundedCornerShape(percent = 25)
-                ).clip(RoundedCornerShape(percent = 25)).background(color = Color.White),
+                ).clip(RoundedCornerShape(percent = 25)).background(color = Color.White)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Press && event.buttons.isPrimaryPressed) {
+                                showError = false
+                            }
+                        }
+                    }
+                },
             maxLines = 1,
             singleLine = true,
             label = { Text("Nickname") },
@@ -71,41 +79,45 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
         Spacer(modifier = Modifier.height(10.dp))
 
         if (showError) {
-            Text("ALGO VA MAL", color = Color.Red)
+            Text("Hola buenas tardes a todos", color = Color.Red)
         }
+
+        Text(entrada)
 
         Button(
             onClick = {
                 val message = "CON,$nickName"
-                // Enviamos el mensaje y esperamos la respuesta "OK" o "NOK"
-                nickNameViewModel.sendMessage(
-                    message = message,
-                    onProgress = { isSuccess ->
-                        if (isSuccess) {
-                            // 'entrada' contiene la respuesta del servidor
-                            val response = entrada.trim().uppercase()
-                            if (response == "OK") {
-                                onNavigateToSettings()
-                            } else if (response == "") {
-                                showError = true
-                                nickNameViewModel.onChange("MARIA JOSE")
-                            } else {
-                                showError = true
-                                nickNameViewModel.onChange("JOSE MARIA")
-                            }
-                        } else {
-                            // onProgress(false) -> indica que hubo un fallo al enviar/recibir
-                            showError = true
-                        }
-                    }
-                )
+                nickNameViewModel.sendMessage(message = message)
             },
             shape = CircleShape,
-            enabled = isConnected // Habilita el botón solo si está conectado
+            enabled = true
         ) {
             Text("Conectarse")
+
         }
 
+        if (entrada != "") {
+            val comando = entrada.substring(0, entrada.indexOf(","))
+            if (comando == "NOK") {
+                showError = true
+            } else if (comando == "OK") {
+                onNavigateToSettings()
+                nickNameViewModel.sendMessage("LUS,")
+
+            }
+        }
     }
 }
+
+/**
+ * IMPORTANTE PARA MIRAR
+ *
+ * Muestra un mensaje de error en forma de Toast-like.
+ *
+ */
+
+fun showSwingDialog(message: String) {
+    JOptionPane.showMessageDialog(null, message)
+}
+
 
