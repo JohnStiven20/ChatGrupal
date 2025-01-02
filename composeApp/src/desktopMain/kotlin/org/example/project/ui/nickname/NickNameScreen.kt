@@ -86,6 +86,7 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
 
         Button(
             onClick = {
+                v
                 val message = "CON,$nickName"
                 nickNameViewModel.sendMessage(message = message)
             },

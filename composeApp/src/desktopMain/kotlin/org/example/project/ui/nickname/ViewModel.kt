@@ -31,9 +31,12 @@ class ViewModel(
      private val _mapaUsuarios = MutableStateFlow<MutableMap<String, MutableList<Mensaje>>>(mutableMapOf())
      val mapaUsuarios: StateFlow<MutableMap<String, MutableList<Mensaje>>> = _mapaUsuarios
 
-
     private val _nickName1 = MutableStateFlow("")
     val nickname1: StateFlow<String> = _nickName1
+
+    private val _nickName2 = MutableStateFlow("")
+    val nickname2: StateFlow<String> = _nickName2
+
 
     init {
         connection()
@@ -105,6 +108,8 @@ class ViewModel(
 
                             } else if (comando == "NOP") {
 
+                            } else if (comando == "EXIT") {
+
                             }
                         }
                     }.onFailure { exception ->
@@ -118,39 +123,28 @@ class ViewModel(
     }
 
     private fun onAtPrivado(key: String, mensaje: Mensaje) {
-        _mapaUsuarios.update {
-            currentMap ->
-            val updatedMap = currentMap.toMutableMap()
-
-            if (updatedMap.containsKey(key)) {
-                updatedMap[key]?.add(mensaje)
-            } else {
-                updatedMap[key] = mutableListOf(mensaje)
-            }
-            println("Mapa actualizado: $updatedMap")
-            updatedMap
+        _mapaUsuarios.update { currentMap ->
+            val updatedMap = currentMap.toMutableMap() // Crea una copia inmutable
+            val mensajes = updatedMap[key]?.toMutableList() ?: mutableListOf()
+            mensajes.add(mensaje)
+            updatedMap[key] = mensajes
+            println("Mapa emitido al flujo: $updatedMap") // LOG para verificar emisión
+            updatedMap // Retorna el nuevo mapa
         }
     }
 
 
     fun addMap(clave: String, valor: Mensaje) {
+
         _mapaUsuarios.update { currentMap ->
-            val updatedMap = currentMap.toMutableMap()
-
-            // Si la clave ya existe, agrega el mensaje a la lista
-            if (updatedMap.containsKey(clave)) {
-                updatedMap[clave]?.add(valor)
-            } else {
-                // Si la clave no existe, crea una nueva lista con el mensaje
-                updatedMap[clave] = mutableListOf(valor)
-            }
-
-            println("Mapa actualizado: $updatedMap") // Log para depuración
-            updatedMap
+            val updatedMap = currentMap.toMutableMap() // Crea una copia inmutable
+            val mensajes = updatedMap[clave]?.toMutableList() ?: mutableListOf()
+            mensajes.add(valor)
+            updatedMap[clave] = mensajes
+            println("Mapa emitido al flujo: $updatedMap") // LOG para verificar emisión
+            updatedMap // Retorna el nuevo mapa
         }
     }
-
-
 
     fun onChangeChat(entrada: String) {
         this._entradaChat.update { entrada }
@@ -168,6 +162,10 @@ class ViewModel(
 
     fun onChange(nickName: String) {
         this._nickName.update { nickName }
+    }
+
+    fun onChange1(nickName: String) {
+        _nickName2.update { nickName }
     }
 
     fun getInnerAddress(): String {

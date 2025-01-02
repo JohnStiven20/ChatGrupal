@@ -229,7 +229,11 @@ fun AppBar(adress: String) {
             Text(text = adress, color = Color.White)
         },
         actions = {
-            IconButton(onClick = {}) {
+            IconButton(
+                onClick = {
+
+                }
+            ) {
                 Text("Hola")
             }
         }
@@ -244,7 +248,7 @@ fun ContenidoMensaje(
     entrada: String
 ) {
 
-    val messages = rememberSaveable{ mutableStateListOf<String>() }
+    val messages = rememberSaveable { mutableStateListOf<String>() }
     val listState = rememberLazyListState()
 
     LaunchedEffect(entrada) {

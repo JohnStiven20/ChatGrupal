@@ -76,16 +76,19 @@ fun ChatPersonal1(
             ChatScreen1(
                 onPromtChange = {
                     viewModel.sendMessagePrivado(it)
-
+                    val mensaje = it.substring(it.lastIndexOf(",") + 1, it.length)
+                    viewModel.addMap(nombreDelOtro, Mensaje(usario = nombreMio, mensaje = mensaje))
+                    viewModel.onChange1(mensaje)
                 },
                 closeConnection = {
-                    onNavigateBack()
+                    viewModel.sendMessage("EXIT")
+                    viewModel.closeConnection()
+                    currentScreen.value = Screen.NickName
                 },
                 usuarioDelOtro = nombreDelOtro,
                 usuarioMio = nombreMio,
                 entrada = entradaChat,
-                mapaUsuarios = mapaUsuarios
-
+                mapaUsuarios = mapaUsuarios,
             )
         }
     )
@@ -99,13 +102,14 @@ fun ChatScreen1(
     usuarioDelOtro: String,
     usuarioMio: String,
     entrada: String,
-    mapaUsuarios: MutableMap<String, MutableList<Mensaje>>
+    mapaUsuarios: MutableMap<String, MutableList<Mensaje>>,
 
-) {
+
+    ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AppBar1(adress = usuarioDelOtro)
+            AppBar1(adress = usuarioDelOtro, closeConnection = closeConnection)
         },
         content = { padding ->
             ContenidoMensaje1(
@@ -133,14 +137,14 @@ fun ChatScreen1(
 
 
 @Composable
-fun AppBar1(adress: String) {
+fun AppBar1(adress: String, closeConnection: () -> Unit) {
     TopAppBar(
         backgroundColor = Color.DarkGray,
         title = {
             Text(text = adress, color = Color.White)
         },
         actions = {
-            IconButton(onClick = {}) {
+            IconButton(onClick = closeConnection) {
                 Text("Hola")
             }
         }
@@ -263,8 +267,6 @@ fun AppBottomBar1(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
                         if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
                             val mensaje = "PRV,$usuarioDelOtro,$texto"
                             onPromtChange(mensaje)
-
-
                             texto = ""
                             true
                         } else {
