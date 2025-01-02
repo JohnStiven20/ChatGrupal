@@ -28,11 +28,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,11 +51,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.example.project.Screen
 import org.example.project.ui.nickname.ViewModel
 
 
 @Composable
-fun ChatPersonal(viewModel: ViewModel, onNavigateBack: () -> Unit) {
+fun ChatPersonal(
+    viewModel: ViewModel,
+    onNavigateBack: () -> Unit,
+    currentScreen: MutableState<Screen>
+) {
 
     val nombreUsuario by viewModel.nickname.collectAsState()
     val entradaChat by viewModel.entradaChat.collectAsState()
@@ -64,7 +71,11 @@ fun ChatPersonal(viewModel: ViewModel, onNavigateBack: () -> Unit) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         content = {
-            ChatIzquierda(usuarios, nombreUsuario)
+            ChatIzquierda(usuarios, nombreUsuario, currentScreen,
+                onClick = {
+                    viewModel.setOnchangeUser(nombre = it)
+                }
+            )
             ChatScreen(
                 onPromtChange = { prompt ->
                     viewModel.sendMessage(prompt)
@@ -95,7 +106,12 @@ fun ChatPersonal(viewModel: ViewModel, onNavigateBack: () -> Unit) {
  */
 
 @Composable
-fun ChatIzquierda(clientesNombre: String, nombreUsuario: String) {
+fun ChatIzquierda(
+    clientesNombre: String,
+    nombreUsuario: String,
+    currentScreen: MutableState<Screen>,
+    onClick: (String) -> Unit
+) {
 
     if (clientesNombre.isNotBlank()) {
 
@@ -118,13 +134,19 @@ fun ChatIzquierda(clientesNombre: String, nombreUsuario: String) {
                     }
                 )
 
-                item(content =  {
-                    TarjetaUsuario(nombre = "2 DAM", )
+                item(content = {
+                    TarjetaUsuario(
+                        nombre = "2 DAM",
+                        currentScreen = currentScreen,
+                        onClick = onClick,
+                        screen = Screen.ChatGeneral
+                    )
                 })
+
 
                 items(listaNombres) { nombre ->
                     if (nombre != nombreUsuario) {
-                        TarjetaUsuario(nombre = nombre)
+                        TarjetaUsuario(nombre = nombre, currentScreen, onClick)
                     }
                 }
             }
@@ -133,11 +155,21 @@ fun ChatIzquierda(clientesNombre: String, nombreUsuario: String) {
 }
 
 @Composable
-fun TarjetaUsuario(nombre: String = "", onClick: () -> Unit = {}) {
+fun TarjetaUsuario(
+    nombre: String,
+    currentScreen: MutableState<Screen> = mutableStateOf(Screen.ChatPrivado),
+    onClick: (String) -> Unit,
+    screen: Screen = Screen.ChatPrivado
+) {
+    println("Nombre recibido en TarjetaUsuario: $nombre")
+
     Card(
         backgroundColor = Color.Gray,
         modifier = Modifier.fillMaxWidth().padding(5.dp).clip(RoundedCornerShape(10.dp))
-            .clickable { },
+            .clickable(onClick = {
+                currentScreen.value = screen
+                onClick(nombre)
+            }),
         shape = RoundedCornerShape(10.dp),
         content = {
             Box(
@@ -212,7 +244,7 @@ fun ContenidoMensaje(
     entrada: String
 ) {
 
-    val messages = remember { mutableStateListOf<String>() }
+    val messages = rememberSaveable{ mutableStateListOf<String>() }
     val listState = rememberLazyListState()
 
     LaunchedEffect(entrada) {
@@ -241,7 +273,8 @@ fun ContenidoMensaje(
 
                 if (comando == "CHT") {
 
-                    val indetificador = message.substring(message.indexOf(",") + 1, message.lastIndexOf(",")).trim()
+                    val indetificador =
+                        message.substring(message.indexOf(",") + 1, message.lastIndexOf(",")).trim()
                     val mensaje = message.substring(message.lastIndexOf(",") + 1, message.length)
 
                     if (indetificador == adress) {

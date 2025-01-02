@@ -27,6 +27,7 @@ fun ScreenHola(viewModel: ViewModel, onNavigateBack: () -> Unit) {
 
     var texto = remember { mutableStateOf("") }
     val entrada by viewModel.entradaChat.collectAsState()
+    val nombrePrueba by viewModel.nickname1.collectAsState()
 
     Scaffold(
         content = {
@@ -35,7 +36,7 @@ fun ScreenHola(viewModel: ViewModel, onNavigateBack: () -> Unit) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 content = {
-                    Text(text = " $entrada Hola", color = Color.Black)
+                    Text(text = nombrePrueba)
                 },
             )
         },

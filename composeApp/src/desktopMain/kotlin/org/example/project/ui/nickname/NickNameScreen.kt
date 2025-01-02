@@ -103,7 +103,7 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
             } else if (comando == "OK") {
                 onNavigateToSettings()
                 nickNameViewModel.sendMessage("LUS,")
-
+                nickNameViewModel.onChangeEntrada("")
             }
         }
     }

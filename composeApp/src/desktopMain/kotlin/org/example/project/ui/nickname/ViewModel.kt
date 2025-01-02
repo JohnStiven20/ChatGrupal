@@ -25,6 +25,15 @@ class ViewModel(
     private var _nombreUsuario = MutableStateFlow("")
     var nombreUsuario: StateFlow<String> = _nombreUsuario
 
+    private val _nickNamePrivado = MutableStateFlow("")
+    val nicknamePrivado: StateFlow<String> = _nickNamePrivado
+
+     private val _mapaUsuarios = MutableStateFlow<MutableMap<String, MutableList<Mensaje>>>(mutableMapOf())
+     val mapaUsuarios: StateFlow<MutableMap<String, MutableList<Mensaje>>> = _mapaUsuarios
+
+
+    private val _nickName1 = MutableStateFlow("")
+    val nickname1: StateFlow<String> = _nickName1
 
     init {
         connection()
@@ -51,6 +60,16 @@ class ViewModel(
         }
     }
 
+    fun sendMessagePrivado(message: String) {
+        viewModelScope.launch() {
+            socketRepository.sendMessage(message)
+        }
+    }
+
+    fun setOnchangeUser(nombre: String) {
+        _nickNamePrivado.update { nombre }
+    }
+
     fun recibirMensaje(onMessageReceived: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -58,8 +77,9 @@ class ViewModel(
                     val result = socketRepository.receiveMessage()
 
                     result.onSuccess { response ->
-                        if (!response.isNullOrBlank()) { // Ignora mensajes vacíos
 
+                        if (!response.isNullOrBlank()) { // Ignora mensajes vacíos
+                            println("Mensaje recibido en el Metodo recibirMensaje: $response")
                             val comando = response.substring(0, response.indexOf(",")).uppercase()
 
                             if (comando == "CHT") {
@@ -67,7 +87,24 @@ class ViewModel(
                             } else if (comando == "OK" || comando == "NOK") {
                                 _entrada.update { response.uppercase() }
                             } else if (comando == "LST") {
-                                _nombreUsuario.update { response}
+                                _nombreUsuario.update {response}
+                            } else if (comando.uppercase() == "PRV") {
+
+                                val nombre = response.substring(
+                                    response.indexOf(",") + 1,
+                                    response.lastIndexOf(",")
+                                )
+
+                                val mensaje = response.substring(
+                                    response.lastIndexOf(",") + 1,
+                                    response.length
+                                )
+
+                                onAtPrivado(nombre, Mensaje(usario = nombre, mensaje = mensaje) );
+                            } else if (comando == "POK") {
+
+                            } else if (comando == "NOP") {
+
                             }
                         }
                     }.onFailure { exception ->
@@ -79,6 +116,40 @@ class ViewModel(
             }
         }
     }
+
+    private fun onAtPrivado(key: String, mensaje: Mensaje) {
+        _mapaUsuarios.update {
+            currentMap ->
+            val updatedMap = currentMap.toMutableMap()
+
+            if (updatedMap.containsKey(key)) {
+                updatedMap[key]?.add(mensaje)
+            } else {
+                updatedMap[key] = mutableListOf(mensaje)
+            }
+            println("Mapa actualizado: $updatedMap")
+            updatedMap
+        }
+    }
+
+
+    fun addMap(clave: String, valor: Mensaje) {
+        _mapaUsuarios.update { currentMap ->
+            val updatedMap = currentMap.toMutableMap()
+
+            // Si la clave ya existe, agrega el mensaje a la lista
+            if (updatedMap.containsKey(clave)) {
+                updatedMap[clave]?.add(valor)
+            } else {
+                // Si la clave no existe, crea una nueva lista con el mensaje
+                updatedMap[clave] = mutableListOf(valor)
+            }
+
+            println("Mapa actualizado: $updatedMap") // Log para depuración
+            updatedMap
+        }
+    }
+
 
 
     fun onChangeChat(entrada: String) {

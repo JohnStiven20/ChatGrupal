@@ -1,20 +1,20 @@
 package org.example.project
 
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import org.example.project.Screen.*
-import org.example.project.repository.SocketRepository
+import org.example.project.Screen.ChatGeneral
+import org.example.project.Screen.ChatPrivado
+import org.example.project.Screen.NickName
 import org.example.project.repository.CoroutineDispatchers
-import org.example.project.ui.chat.ChatApp
+import org.example.project.repository.SocketRepository
 import org.example.project.ui.chat.ChatPersonal
-import org.example.project.ui.chat.ScreenHola
+import org.example.project.ui.chat.ChatPersonal1
 import org.example.project.ui.nickname.NickNameScreen
 import org.example.project.ui.nickname.ViewModel
-import java.awt.Window as AwtWindow
 
 
 @Composable
@@ -40,7 +40,8 @@ fun App() {
 
 enum class Screen {
     NickName,
-    Chat
+    ChatGeneral,
+    ChatPrivado
 }
 
 @Composable
@@ -51,14 +52,26 @@ fun AppNavigation(nickNameViewModel: ViewModel) {
     when (currentScreen.value) {
 
         NickName -> NickNameScreen(
-            onNavigateToSettings = { currentScreen.value = Chat },
+            onNavigateToSettings = { currentScreen.value = ChatGeneral },
             nickNameViewModel = nickNameViewModel
         )
-        Chat -> ChatPersonal(
+
+        ChatGeneral -> ChatPersonal(
             viewModel = nickNameViewModel,
-            onNavigateBack = {currentScreen.value =  NickName}
+            onNavigateBack = { currentScreen.value = ChatPrivado },
+            currentScreen = currentScreen
         )
+
+        ChatPrivado -> {
+            ChatPersonal1(
+                viewModel = nickNameViewModel,
+                onNavigateBack = { currentScreen.value = ChatGeneral },
+                currentScreen = currentScreen
+            )
+        }
+
     }
 }
+
 
 
