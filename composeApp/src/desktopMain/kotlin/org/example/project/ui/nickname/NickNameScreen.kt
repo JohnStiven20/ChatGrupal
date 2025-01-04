@@ -39,6 +39,12 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
     val nickName by nickNameViewModel.nickname.collectAsState()
     val entrada by nickNameViewModel.entrada.collectAsState()
     var showError by remember { mutableStateOf(false) }
+    val apadado by nickNameViewModel.apagar.collectAsState()
+
+    LaunchedEffect(Unit, apadado) {
+        nickNameViewModel.recibirMensaje {}
+        println("Recibido en App")
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(color = Color(0xFF2E3035)),
@@ -86,9 +92,17 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
 
         Button(
             onClick = {
-                v
-                val message = "CON,$nickName"
-                nickNameViewModel.sendMessage(message = message)
+                nickNameViewModel.connection { conectado ->
+                    println("Conectado: $conectado")
+                    if (conectado) {
+                        val message = "CON,$nickName"
+                        println("Mensaje enviado: $message")
+                        nickNameViewModel.encender()
+                        nickNameViewModel.sendMessage(message = message)
+
+                    }
+                }
+
             },
             shape = CircleShape,
             enabled = true
@@ -98,13 +112,13 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
         }
 
         if (entrada != "") {
+            println("Entrada en NickNameScreen: $entrada")
             val comando = entrada.substring(0, entrada.indexOf(","))
             if (comando == "NOK") {
                 showError = true
             } else if (comando == "OK") {
                 onNavigateToSettings()
                 nickNameViewModel.sendMessage("LUS,")
-                nickNameViewModel.onChangeEntrada("")
             }
         }
     }

@@ -81,7 +81,9 @@ fun ChatPersonal(
                     viewModel.sendMessage(prompt)
                 },
                 closeConnection = {
-                    onNavigateBack()
+                    viewModel.sendMessageCerrado("EXI")
+                    viewModel.resetStates()
+                    currentScreen.value = Screen.NickName
                 },
                 adress = nombreUsuario,
                 entrada = entradaChat
@@ -195,7 +197,7 @@ fun ChatScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AppBar(adress = adress)
+            AppBar(adress = adress, closeConnection = closeConnection)
         },
         content = { padding ->
             ContenidoMensaje(
@@ -222,7 +224,7 @@ fun ChatScreen(
 
 
 @Composable
-fun AppBar(adress: String) {
+fun AppBar(adress: String, closeConnection: () -> Unit) {
     TopAppBar(
         backgroundColor = Color.DarkGray,
         title = {
@@ -230,9 +232,7 @@ fun AppBar(adress: String) {
         },
         actions = {
             IconButton(
-                onClick = {
-
-                }
+                onClick = closeConnection
             ) {
                 Text("Hola")
             }
@@ -253,6 +253,7 @@ fun ContenidoMensaje(
 
     LaunchedEffect(entrada) {
         if (entrada.isNotBlank()) {
+            println("Entrada en ContenidoMensaje: $entrada")
             val comando = entrada.substring(0, entrada.indexOf(","))
 
             if (comando == "CHT") {

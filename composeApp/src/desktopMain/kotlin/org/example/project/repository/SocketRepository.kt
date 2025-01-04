@@ -1,30 +1,38 @@
 package org.example.project.repository
 
 import kotlinx.coroutines.withContext
-import org.example.project.Interface.SocketRepositoryInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 
-class SocketRepository(private val dispatchers: CoroutineDispatchers = CoroutineDispatchers()) :
-    SocketRepositoryInt {
+class SocketRepository(private val dispatchers: CoroutineDispatchers = CoroutineDispatchers()) {
 
     private var socket: Socket? = null
     private var entrada: DataInputStream? = null
     private var salida: DataOutputStream? = null
+    private var estadoConexion: Boolean = false
 
-    override suspend fun connection(dirrecion: String, puerto: Int) {
-        withContext(dispatchers.main) {
+    suspend fun connection(dirrecion: String, puerto: Int): Boolean {
+
+        println("Estado Conexion: $estadoConexion")
+        return withContext(dispatchers.main) {
             try {
-                socket = Socket(dirrecion, puerto)
-                val entradaTemporal = socket?.getInputStream()
-                val salidaTemporal = socket?.getOutputStream()
+                if (!estadoConexion) {
+                    socket = Socket(dirrecion, puerto)
+                    val entradaTemporal = socket?.getInputStream()
+                    val salidaTemporal = socket?.getOutputStream()
 
-                if (entradaTemporal != null && salidaTemporal != null) {
-                    entrada = DataInputStream(entradaTemporal)
-                    salida = DataOutputStream(salidaTemporal)
+                    if (entradaTemporal != null && salidaTemporal != null) {
+                        entrada = DataInputStream(entradaTemporal)
+                        salida = DataOutputStream(salidaTemporal)
+                        estadoConexion = true
+                    } else {
+                        throw RuntimeException("Error: InputStream o OutputStream es null")
+                    }
+                    println("Intentando conectar al servidor...: ${socket?.isConnected ?: false}")
+                    true
                 } else {
-                    throw RuntimeException("Error: InputStream o OutputStream es null")
+                    true
                 }
 
             } catch (e: Exception) {
@@ -34,37 +42,53 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
 
     }
 
-    override suspend fun sendMessage(message: String) {
+    suspend fun sendMessage(message: String) {
         return withContext(dispatchers.io) {
+            try {
                 salida?.writeUTF(message)
                 salida?.flush()
+            } catch (e: Exception) {
+                println("Hola desde el metodo sendMessage")
+            }
+        }
+    }
+
+    suspend fun sendMessageCerrado(message: String) {
+        return withContext(dispatchers.main) {
+            try {
+                salida?.writeUTF(message)
+                salida?.flush()
+            } catch (e: Exception) {
+                println("Hola desde el metodo sendMessage")
+            }
         }
     }
 
 
-
-    override suspend fun receiveMessage(): Result<String?> {
+    suspend fun receiveMessage(): Result<String?> {
         return withContext(dispatchers.io) {
             try {
                 Result.success(entrada?.readUTF())
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 Result.failure(e)
             }
         }
     }
 
 
-    override suspend fun closeConnection() {
-        withContext(dispatchers.io) {
-            try {
-                entrada?.close()
-                salida?.close()
-                socket?.close()
-            } catch (e: Exception) {
-                throw RuntimeException("Error al cerrar la conexión: ${e.message}")
-            }
+    fun closeConnection() {
+        try {
+            entrada?.close()
+            salida?.close()
+            socket?.close()
+            estadoConexion = false
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error al cerrar la conexión: ${e.message}")
         }
+
     }
+
 
     fun getInnerAddress(): String {
 
@@ -76,6 +100,5 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
             throw RuntimeException("Error: Socket es null")
         }
     }
-
 
 }

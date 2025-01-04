@@ -78,11 +78,10 @@ fun ChatPersonal1(
                     viewModel.sendMessagePrivado(it)
                     val mensaje = it.substring(it.lastIndexOf(",") + 1, it.length)
                     viewModel.addMap(nombreDelOtro, Mensaje(usario = nombreMio, mensaje = mensaje))
-                    viewModel.onChange1(mensaje)
                 },
                 closeConnection = {
-                    viewModel.sendMessage("EXIT")
-                    viewModel.closeConnection()
+                    viewModel.sendMessageCerrado("EXI,")
+                    viewModel.resetStates()
                     currentScreen.value = Screen.NickName
                 },
                 usuarioDelOtro = nombreDelOtro,
@@ -103,7 +102,6 @@ fun ChatScreen1(
     usuarioMio: String,
     entrada: String,
     mapaUsuarios: MutableMap<String, MutableList<Mensaje>>,
-
 
     ) {
     Scaffold(

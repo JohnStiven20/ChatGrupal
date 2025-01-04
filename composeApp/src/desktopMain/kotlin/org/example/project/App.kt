@@ -30,10 +30,6 @@ fun App() {
     ) {
         val nickNameViewModel = ViewModel(socketRepository, CoroutineDispatchers())
 
-        LaunchedEffect(Unit) {
-            nickNameViewModel.recibirMensaje {}
-        }
-
         AppNavigation(nickNameViewModel)
     }
 }
