@@ -17,6 +17,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,24 +27,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isPrimaryPressed
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import org.example.project.navigation.Screen
 import javax.swing.JOptionPane
 
 
 @Composable
-fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewModel) {
+fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
 
-    val nickName by nickNameViewModel.nickname.collectAsState()
-    val entrada by nickNameViewModel.entrada.collectAsState()
-    var showError by remember { mutableStateOf(false) }
-    val apadado by nickNameViewModel.apagar.collectAsState()
+    val nickName by viewModel.nickname.collectAsState()
+    val mensajeServidor by viewModel.entrada.collectAsState()
+    var mostrarError by remember { mutableStateOf(false) }
+    val estadoConexion by viewModel.estadoConexion.collectAsState()
+    var mensajeError by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit, apadado) {
-        nickNameViewModel.recibirMensaje {}
-        println("Recibido en App")
+    LaunchedEffect(Unit, estadoConexion) {
+        viewModel.recibirMensajeServidor()
     }
 
     Column(
@@ -52,30 +51,20 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
         verticalArrangement = Arrangement.Center
     ) {
 
-        Text("Introduce un Nickname Stiven")
+        Text("Introduce un Nickname")
 
         Spacer(modifier = Modifier.height(10.dp))
 
         TextField(
             value = nickName,
-            onValueChange = { nickNameViewModel.onChange(nickName = it) },
+            onValueChange = { viewModel.onChange(nickName = it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp).border(
                     1.5.dp,
                     MaterialTheme.colorScheme.onBackground,
                     RoundedCornerShape(percent = 25)
-                ).clip(RoundedCornerShape(percent = 25)).background(color = Color.White)
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.type == PointerEventType.Press && event.buttons.isPrimaryPressed) {
-                                showError = false
-                            }
-                        }
-                    }
-                },
+                ).clip(RoundedCornerShape(percent = 25)).background(color = Color.White),
             maxLines = 1,
             singleLine = true,
             label = { Text("Nickname") },
@@ -84,55 +73,50 @@ fun NickNameScreen(onNavigateToSettings: () -> Unit, nickNameViewModel: ViewMode
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        if (showError) {
-            Text("Hola buenas tardes a todos", color = Color.Red)
+        if (mostrarError) {
+            mostrarMensajeError(mensajeError)
+            mostrarError = false
         }
-
-        Text(entrada)
 
         Button(
             onClick = {
-                nickNameViewModel.connection { conectado ->
+                viewModel.connection { conectado ->
                     println("Conectado: $conectado")
                     if (conectado) {
                         val message = "CON,$nickName"
                         println("Mensaje enviado: $message")
-                        nickNameViewModel.encender()
-                        nickNameViewModel.sendMessage(message = message)
-
+                        viewModel.encender()
+                        viewModel.sendMessage(message = message)
                     }
                 }
 
             },
             shape = CircleShape,
-            enabled = true
         ) {
             Text("Conectarse")
-
         }
 
-        if (entrada != "") {
-            println("Entrada en NickNameScreen: $entrada")
-            val comando = entrada.substring(0, entrada.indexOf(","))
+        if (mensajeServidor != "") {
+            println("Entrada en NickNameScreen: $mensajeServidor")
+
+            val comando = mensajeServidor.substring(0, mensajeServidor.indexOf(","))
+
             if (comando == "NOK") {
-                showError = true
+                mostrarError = true
+                viewModel.onChangeEntrada("")
+                viewModel.onChange("")
+                mensajeError = "Nickname ya en uso"
             } else if (comando == "OK") {
-                onNavigateToSettings()
-                nickNameViewModel.sendMessage("LUS,")
+                pantallaActual.value = Screen.ChatGeneral
+                viewModel.sendMessage("LUS,")
             }
         }
     }
 }
 
-/**
- * IMPORTANTE PARA MIRAR
- *
- * Muestra un mensaje de error en forma de Toast-like.
- *
- */
 
-fun showSwingDialog(message: String) {
-    JOptionPane.showMessageDialog(null, message)
+fun mostrarMensajeError(mensaje: String) {
+    JOptionPane.showMessageDialog(null, mensaje)
 }
 
 

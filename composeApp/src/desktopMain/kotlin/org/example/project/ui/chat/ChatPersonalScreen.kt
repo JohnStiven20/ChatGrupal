@@ -31,10 +31,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,20 +49,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.example.project.Screen
+import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.ViewModel
 
 
 @Composable
-fun ChatPersonal(
+fun ChatGeneral(
     viewModel: ViewModel,
-    onNavigateBack: () -> Unit,
     currentScreen: MutableState<Screen>
 ) {
 
     val nombreUsuario by viewModel.nickname.collectAsState()
     val entradaChat by viewModel.entradaChat.collectAsState()
     val usuarios by viewModel.nombreUsuario.collectAsState()
+    val listaMensajes by viewModel.listaMensajes.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -81,12 +79,14 @@ fun ChatPersonal(
                     viewModel.sendMessage(prompt)
                 },
                 closeConnection = {
-                    viewModel.sendMessageCerrado("EXI")
+                    viewModel.sendMessage("EXI")
                     viewModel.resetStates()
                     currentScreen.value = Screen.NickName
                 },
                 adress = nombreUsuario,
-                entrada = entradaChat
+                entrada = entradaChat,
+                mensajes = listaMensajes
+
             )
         }
     )
@@ -192,6 +192,7 @@ fun ChatScreen(
     closeConnection: () -> Unit,
     adress: String,
     entrada: String,
+    mensajes: MutableList<String>
 
     ) {
     Scaffold(
@@ -204,7 +205,8 @@ fun ChatScreen(
                 padding = padding,
                 onPromtChange = onPromtChange,
                 adress = adress,
-                entrada = entrada
+                entrada = entrada,
+                mensajes = mensajes
             )
         },
         bottomBar = {
@@ -245,26 +247,15 @@ fun ContenidoMensaje(
     padding: PaddingValues,
     onPromtChange: (String) -> Unit,
     adress: String,
-    entrada: String
+    entrada: String,
+    mensajes: MutableList<String>
 ) {
 
-    val messages = rememberSaveable { mutableStateListOf<String>() }
     val listState = rememberLazyListState()
 
-    LaunchedEffect(entrada) {
-        if (entrada.isNotBlank()) {
-            println("Entrada en ContenidoMensaje: $entrada")
-            val comando = entrada.substring(0, entrada.indexOf(","))
-
-            if (comando == "CHT") {
-                messages.add(entrada)
-            }
-        }
-    }
-
-    LaunchedEffect(entrada) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+    LaunchedEffect(mensajes) {
+        if (mensajes.isNotEmpty()) {
+            listState.animateScrollToItem(mensajes.size - 1)
         }
     }
 
@@ -272,7 +263,7 @@ fun ContenidoMensaje(
         modifier = Modifier.fillMaxSize().padding(padding).background(Color.LightGray),
         content = {
 
-            items(messages) { message ->
+            items(mensajes) { message ->
 
                 val comando = message.substring(0, message.indexOf(",")).uppercase()
 

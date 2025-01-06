@@ -28,15 +28,18 @@ class ViewModel(
     private val _nickNamePrivado = MutableStateFlow("")
     val nicknamePrivado: StateFlow<String> = _nickNamePrivado
 
-    private val _mapaUsuarios =
-        MutableStateFlow<MutableMap<String, MutableList<Mensaje>>>(mutableMapOf())
+    private val _mapaUsuarios = MutableStateFlow<MutableMap<String, MutableList<Mensaje>>>(mutableMapOf())
     val mapaUsuarios: StateFlow<MutableMap<String, MutableList<Mensaje>>> = _mapaUsuarios
 
     private val _nickName1 = MutableStateFlow("")
     val nickname1: StateFlow<String> = _nickName1
 
-    private val _apagar = MutableStateFlow(true)
-    val apagar: StateFlow<Boolean> = _apagar
+    private val _estadoConexion = MutableStateFlow(true)
+    val estadoConexion: StateFlow<Boolean> = _estadoConexion
+
+    private val _listaMensajes =MutableStateFlow<MutableList<String>>(mutableListOf())
+    val listaMensajes:StateFlow<MutableList<String>> = _listaMensajes
+
 
 
 
@@ -70,22 +73,8 @@ class ViewModel(
         }
     }
 
-    fun sendMessageCerrado(message: String) {
-        viewModelScope.launch {
-            try {
-                socketRepository.sendMessageCerrado(message)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun apagar() {
-        _apagar.update { false }
-    }
-
     fun encender() {
-        _apagar.update { true }
+        _estadoConexion.update {true}
     }
 
     fun sendMessagePrivado(message: String) {
@@ -98,23 +87,22 @@ class ViewModel(
         _nickNamePrivado.update { nombre }
     }
 
-    fun recibirMensaje(onMessageReceived: (String) -> Unit) {
-
-
+    fun recibirMensajeServidor() {
 
         viewModelScope.launch {
 
             try {
-                while (_apagar.value) {
+                while (_estadoConexion.value) {
                     val result = socketRepository.receiveMessage()
                     result.onSuccess { response ->
 
-                        if (!response.isNullOrBlank()) { // Ignora mensajes vacíos
+                        if (!response.isNullOrBlank()) {
                             println("Mensaje recibido en el Metodo recibirMensaje: $response")
                             val comando = response.substring(0, response.indexOf(",")).uppercase()
 
                             if (comando == "CHT") {
                                 _entradaChat.update { response }
+                                agregarMensaje(response)
                             } else if (comando == "OK" || comando == "NOK") {
                                 println("Entrada en recibirMensaje ESPAÑA: $response")
                                 _entrada.update { response.uppercase() }
@@ -145,14 +133,14 @@ class ViewModel(
                                     println("Usuario $usuario ha salido del chat")
                                     _nickName.update {""}
                                     closeConnection()
-                                    _apagar.update { false }
+                                    _estadoConexion.update { false }
                                 } else {
                                     sendMessage("LUS,")
                                 }
                             }
                         }
                     }.onFailure { exception ->
-                             println("${exception.message} Hola desde el metodo recibirMensaje")
+                        println("Error al recibir el mensaje: ${exception.message}")
                     }
 
                 }
@@ -170,6 +158,14 @@ class ViewModel(
             updatedMap[key] = mensajes
             println("Mapa emitido al flujo: $updatedMap") // LOG para verificar emisión
             updatedMap // Retorna el nuevo mapa
+        }
+    }
+
+    private fun agregarMensaje(mensaje: String) {
+        _listaMensajes.update { currentList ->
+            val updatedList = currentList.toMutableList()
+            updatedList.add(mensaje)
+            updatedList
         }
     }
 
@@ -208,7 +204,7 @@ class ViewModel(
         _nombreUsuario.value = ""
         _nickNamePrivado.value = ""
         _mapaUsuarios.value = mutableMapOf()
-        _apagar.update { true }
+        _estadoConexion.update { true }
     }
 
     fun getInnerAddress(): String {

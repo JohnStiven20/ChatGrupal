@@ -48,21 +48,12 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
                 salida?.writeUTF(message)
                 salida?.flush()
             } catch (e: Exception) {
-                println("Hola desde el metodo sendMessage")
+                e.printStackTrace()
             }
         }
     }
 
-    suspend fun sendMessageCerrado(message: String) {
-        return withContext(dispatchers.main) {
-            try {
-                salida?.writeUTF(message)
-                salida?.flush()
-            } catch (e: Exception) {
-                println("Hola desde el metodo sendMessage")
-            }
-        }
-    }
+
 
 
     suspend fun receiveMessage(): Result<String?> {

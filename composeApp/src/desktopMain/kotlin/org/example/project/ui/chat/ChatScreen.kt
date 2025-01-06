@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.example.project.Screen
+import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.Mensaje
 import org.example.project.ui.nickname.ViewModel
 
@@ -54,7 +54,6 @@ import org.example.project.ui.nickname.ViewModel
 @Composable
 fun ChatPersonal1(
     viewModel: ViewModel,
-    onNavigateBack: () -> Unit,
     currentScreen: MutableState<Screen>
 ) {
     val nombreDelOtro by viewModel.nicknamePrivado.collectAsState()
@@ -80,7 +79,7 @@ fun ChatPersonal1(
                     viewModel.addMap(nombreDelOtro, Mensaje(usario = nombreMio, mensaje = mensaje))
                 },
                 closeConnection = {
-                    viewModel.sendMessageCerrado("EXI,")
+                    viewModel.sendMessage("EXI,")
                     viewModel.resetStates()
                     currentScreen.value = Screen.NickName
                 },
@@ -102,6 +101,7 @@ fun ChatScreen1(
     usuarioMio: String,
     entrada: String,
     mapaUsuarios: MutableMap<String, MutableList<Mensaje>>,
+
 
     ) {
     Scaffold(

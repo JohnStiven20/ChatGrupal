@@ -1,9 +1,15 @@
 package org.example.project.navigation
 
-sealed class Screen (
+sealed class ScreenExperimental (
     val route:String
 ){
-    object Registro : Screen("registro")
-    object Login : Screen("login")
-    object Home : Screen("Home")
+    object Registro : ScreenExperimental("registro")
+    object Login : ScreenExperimental("login")
+    object Home : ScreenExperimental("Home")
+}
+
+enum class Screen {
+    NickName,
+    ChatGeneral,
+    ChatPrivado
 }

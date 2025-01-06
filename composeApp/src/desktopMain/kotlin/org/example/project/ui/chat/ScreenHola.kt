@@ -22,7 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.example.project.Screen
+import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.ViewModel
 
 
@@ -44,7 +44,7 @@ fun ScreenHola(
                     Text(text = "Salir")
                 },
                     onClick = {
-                        viewModel.sendMessageCerrado("EXI,${viewModel.nickname.value}")
+                        viewModel.sendMessage("EXI,${viewModel.nickname.value}")
                         viewModel.resetStates()
                         currentScreen.value = Screen.NickName
                     }
