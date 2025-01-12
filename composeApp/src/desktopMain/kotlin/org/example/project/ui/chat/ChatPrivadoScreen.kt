@@ -52,14 +52,13 @@ import org.example.project.ui.nickname.ViewModel
 
 
 @Composable
-fun ChatPersonal1(
+fun ChatPrivadoScreen(
     viewModel: ViewModel,
     currentScreen: MutableState<Screen>
 ) {
     val nombreDelOtro by viewModel.nicknamePrivado.collectAsState()
     val nombreMio by viewModel.nickname.collectAsState()
-    val entradaChat by viewModel.entradaChat.collectAsState()
-    val usuarios by viewModel.nombreUsuario.collectAsState()
+    val usuarios by viewModel.listaUsuarios.collectAsState()
     val mapaUsuarios by viewModel.mapaUsuarios.collectAsState()
 
     Row(
@@ -69,7 +68,7 @@ fun ChatPersonal1(
         content = {
             ChatIzquierda(usuarios, nombreMio, currentScreen,
                 onClick = {
-                    viewModel.setOnchangeUser(nombre = it)
+                    viewModel.setCambioUsuario(nombre = it)
                 }
             )
             ChatScreen1(
@@ -85,7 +84,6 @@ fun ChatPersonal1(
                 },
                 usuarioDelOtro = nombreDelOtro,
                 usuarioMio = nombreMio,
-                entrada = entradaChat,
                 mapaUsuarios = mapaUsuarios,
             )
         }
@@ -99,7 +97,6 @@ fun ChatScreen1(
     closeConnection: () -> Unit,
     usuarioDelOtro: String,
     usuarioMio: String,
-    entrada: String,
     mapaUsuarios: MutableMap<String, MutableList<Mensaje>>,
 
 
@@ -112,7 +109,6 @@ fun ChatScreen1(
         content = { padding ->
             ContenidoMensaje1(
                 padding = padding,
-                entrada = entrada,
                 mapaUsuarios = mapaUsuarios,
                 nombreMio = usuarioMio,
                 nombreDelOtro = usuarioDelOtro
@@ -154,7 +150,6 @@ fun ContenidoMensaje1(
     padding: PaddingValues,
     nombreDelOtro: String,
     nombreMio: String,
-    entrada: String,
     mapaUsuarios: MutableMap<String, MutableList<Mensaje>>
 ) {
 

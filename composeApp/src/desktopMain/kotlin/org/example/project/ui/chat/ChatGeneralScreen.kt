@@ -54,38 +54,36 @@ import org.example.project.ui.nickname.ViewModel
 
 
 @Composable
-fun ChatGeneral(
+fun ChatGeneralScreen(
     viewModel: ViewModel,
-    currentScreen: MutableState<Screen>
+    pantallaActual: MutableState<Screen>
 ) {
 
-    val nombreUsuario by viewModel.nickname.collectAsState()
-    val entradaChat by viewModel.entradaChat.collectAsState()
-    val usuarios by viewModel.nombreUsuario.collectAsState()
-    val listaMensajes by viewModel.listaMensajes.collectAsState()
+    val nickname by viewModel.nickname.collectAsState()
+    val listaUsuarios by viewModel.listaUsuarios.collectAsState()
+    val mensajes by viewModel.listaMensajes.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         content = {
-            ChatIzquierda(usuarios, nombreUsuario, currentScreen,
-                onClick = {
-                    viewModel.setOnchangeUser(nombre = it)
+            ChatIzquierda(listaUsuarios, nickname, pantallaActual,
+                onClick = {usuario ->
+                    viewModel.setCambioUsuario(nombre = usuario)
                 }
             )
             ChatScreen(
-                onPromtChange = { prompt ->
-                    viewModel.sendMessage(prompt)
+                onEnviarMensaje = { mensaje ->
+                    viewModel.sendMessage(mensaje)
                 },
-                closeConnection = {
+                onCerrarConexion = {
                     viewModel.sendMessage("EXI")
                     viewModel.resetStates()
-                    currentScreen.value = Screen.NickName
+                    pantallaActual.value = Screen.NickName
                 },
-                adress = nombreUsuario,
-                entrada = entradaChat,
-                mensajes = listaMensajes
+                nickname = nickname,
+                mensajes = mensajes
 
             )
         }
@@ -109,15 +107,15 @@ fun ChatGeneral(
 
 @Composable
 fun ChatIzquierda(
-    clientesNombre: String,
-    nombreUsuario: String,
-    currentScreen: MutableState<Screen>,
+    listaUsuarios: String,
+    nicknamePropio: String,
+    pantallaActual: MutableState<Screen>,
     onClick: (String) -> Unit
 ) {
 
-    if (clientesNombre.isNotBlank()) {
+    if (listaUsuarios.isNotBlank()) {
 
-        val listaNombres = clientesNombre.substring(4).split(",").map { it.trim() }
+        val listaNombres = listaUsuarios.substring(4).split(",").map { it.trim() }
 
         LazyColumn(
             modifier = Modifier.fillMaxHeight().width(200.dp).background(Color.LightGray)
@@ -139,16 +137,20 @@ fun ChatIzquierda(
                 item(content = {
                     TarjetaUsuario(
                         nombre = "2 DAM",
-                        currentScreen = currentScreen,
+                        pantallaActual = pantallaActual,
                         onClick = onClick,
                         screen = Screen.ChatGeneral
                     )
                 })
 
-
                 items(listaNombres) { nombre ->
-                    if (nombre != nombreUsuario) {
-                        TarjetaUsuario(nombre = nombre, currentScreen, onClick)
+                    if (nombre != nicknamePropio) {
+                        TarjetaUsuario(
+                            nombre = nombre,
+                            pantallaActual = pantallaActual,
+                            onClick = onClick,
+                            screen = Screen.ChatPrivado
+                        )
                     }
                 }
             }
@@ -159,7 +161,7 @@ fun ChatIzquierda(
 @Composable
 fun TarjetaUsuario(
     nombre: String,
-    currentScreen: MutableState<Screen> = mutableStateOf(Screen.ChatPrivado),
+    pantallaActual: MutableState<Screen> = mutableStateOf(Screen.ChatPrivado),
     onClick: (String) -> Unit,
     screen: Screen = Screen.ChatPrivado
 ) {
@@ -169,7 +171,7 @@ fun TarjetaUsuario(
         backgroundColor = Color.Gray,
         modifier = Modifier.fillMaxWidth().padding(5.dp).clip(RoundedCornerShape(10.dp))
             .clickable(onClick = {
-                currentScreen.value = screen
+                pantallaActual.value = screen
                 onClick(nombre)
             }),
         shape = RoundedCornerShape(10.dp),
@@ -188,37 +190,28 @@ fun TarjetaUsuario(
 
 @Composable
 fun ChatScreen(
-    onPromtChange: (String) -> Unit,
-    closeConnection: () -> Unit,
-    adress: String,
-    entrada: String,
+    onEnviarMensaje: (String) -> Unit,
+    onCerrarConexion: () -> Unit,
+    nickname: String,
     mensajes: MutableList<String>
 
-    ) {
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AppBar(adress = adress, closeConnection = closeConnection)
+            AppBar(closeConnection = onCerrarConexion)
         },
         content = { padding ->
+
             ContenidoMensaje(
                 padding = padding,
-                onPromtChange = onPromtChange,
-                adress = adress,
-                entrada = entrada,
+                nickname = nickname,
                 mensajes = mensajes
             )
         },
         bottomBar = {
             AppBottomBar(
-                onPromtChange = onPromtChange,
-                adress = adress,
-
-                )
-        },
-        floatingActionButton = {
-            BotonFlotante(
-                closeConnection = closeConnection
+                onEnviarMensaje = onEnviarMensaje
             )
         }
     )
@@ -226,11 +219,11 @@ fun ChatScreen(
 
 
 @Composable
-fun AppBar(adress: String, closeConnection: () -> Unit) {
+fun AppBar(closeConnection: () -> Unit) {
     TopAppBar(
         backgroundColor = Color.DarkGray,
         title = {
-            Text(text = adress, color = Color.White)
+            Text(text = "2 DAM", color = Color.White)
         },
         actions = {
             IconButton(
@@ -245,9 +238,7 @@ fun AppBar(adress: String, closeConnection: () -> Unit) {
 @Composable
 fun ContenidoMensaje(
     padding: PaddingValues,
-    onPromtChange: (String) -> Unit,
-    adress: String,
-    entrada: String,
+    nickname: String,
     mensajes: MutableList<String>
 ) {
 
@@ -273,7 +264,7 @@ fun ContenidoMensaje(
                         message.substring(message.indexOf(",") + 1, message.lastIndexOf(",")).trim()
                     val mensaje = message.substring(message.lastIndexOf(",") + 1, message.length)
 
-                    if (indetificador == adress) {
+                    if (indetificador == nickname) {
                         Mensaje(
                             text = mensaje,
                             nicknamee = indetificador,
@@ -334,7 +325,7 @@ fun Mensaje(
 }
 
 @Composable
-fun AppBottomBar(onPromtChange: (String) -> Unit, adress: String) {
+fun AppBottomBar(onEnviarMensaje: (String) -> Unit) {
 
     var texto by remember { mutableStateOf("") }
 
@@ -354,7 +345,7 @@ fun AppBottomBar(onPromtChange: (String) -> Unit, adress: String) {
 
                         if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
                             if (texto.isNotBlank()) {
-                                onPromtChange("MSG,$texto")
+                                onEnviarMensaje("MSG,$texto")
                                 texto = ""
 
                             }
@@ -382,7 +373,7 @@ fun AppBottomBar(onPromtChange: (String) -> Unit, adress: String) {
                     .background(Color.DarkGray),
                 onClick = {
                     if (texto.isNotBlank()) {
-                        onPromtChange("MSG,$texto")
+                        onEnviarMensaje("MSG,$texto")
                         texto = "" // Limpia el campo después de enviar
                     }
                 },
@@ -393,20 +384,6 @@ fun AppBottomBar(onPromtChange: (String) -> Unit, adress: String) {
                         tint = Color.White
                     )
                 }
-            )
-        }
-    )
-}
-
-@Composable
-fun BotonFlotante(closeConnection: () -> Unit) {
-    IconButton(
-        modifier = Modifier.clip(shape = RoundedCornerShape(25.dp))
-            .background(Color.DarkGray), onClick = closeConnection, content = {
-            Icon(
-                Icons.AutoMirrored.Default.Send,
-                contentDescription = null,
-                tint = Color.White
             )
         }
     )

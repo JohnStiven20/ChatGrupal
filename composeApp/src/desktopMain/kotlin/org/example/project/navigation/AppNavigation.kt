@@ -2,8 +2,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import org.example.project.navigation.Screen
-import org.example.project.ui.chat.ChatGeneral
-import org.example.project.ui.chat.ChatPersonal1
+import org.example.project.ui.chat.ChatGeneralScreen
+import org.example.project.ui.chat.ChatPrivadoScreen
 import org.example.project.ui.nickname.NickNameScreen
 import org.example.project.ui.nickname.ViewModel
 
@@ -19,13 +19,13 @@ fun AppNavigation(viewModel: ViewModel) {
             pantallaActual = pantallaActual
         )
 
-        Screen.ChatGeneral -> ChatGeneral(
+        Screen.ChatGeneral -> ChatGeneralScreen(
             viewModel = viewModel,
-            currentScreen = pantallaActual
+            pantallaActual = pantallaActual
         )
 
         Screen.ChatPrivado -> {
-            ChatPersonal1(
+            ChatPrivadoScreen(
                 viewModel = viewModel,
                 currentScreen = pantallaActual
             )

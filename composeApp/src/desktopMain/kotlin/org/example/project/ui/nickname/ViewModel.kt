@@ -22,8 +22,8 @@ class ViewModel(
     private var _entradaChat = MutableStateFlow("")
     var entradaChat: StateFlow<String> = _entradaChat
 
-    private var _nombreUsuario = MutableStateFlow("")
-    var nombreUsuario: StateFlow<String> = _nombreUsuario
+    private var _listaUsarios = MutableStateFlow("")
+    var listaUsuarios: StateFlow<String> = _listaUsarios
 
     private val _nickNamePrivado = MutableStateFlow("")
     val nicknamePrivado: StateFlow<String> = _nickNamePrivado
@@ -39,9 +39,6 @@ class ViewModel(
 
     private val _listaMensajes =MutableStateFlow<MutableList<String>>(mutableListOf())
     val listaMensajes:StateFlow<MutableList<String>> = _listaMensajes
-
-
-
 
     fun connection(
         dirrecion: String = "192.168.0.18",
@@ -83,7 +80,7 @@ class ViewModel(
         }
     }
 
-    fun setOnchangeUser(nombre: String) {
+    fun setCambioUsuario(nombre: String) {
         _nickNamePrivado.update { nombre }
     }
 
@@ -107,7 +104,7 @@ class ViewModel(
                                 println("Entrada en recibirMensaje ESPAÑA: $response")
                                 _entrada.update { response.uppercase() }
                             } else if (comando == "LST") {
-                                _nombreUsuario.update { response }
+                                _listaUsarios.update { response }
                             } else if (comando.uppercase() == "PRV") {
 
                                 val nombre = response.substring(
@@ -201,7 +198,7 @@ class ViewModel(
     fun resetStates() {
         _entrada.value = ""
         _entradaChat.value = ""
-        _nombreUsuario.value = ""
+        _listaUsarios.value = ""
         _nickNamePrivado.value = ""
         _mapaUsuarios.value = mutableMapOf()
         _estadoConexion.update { true }
