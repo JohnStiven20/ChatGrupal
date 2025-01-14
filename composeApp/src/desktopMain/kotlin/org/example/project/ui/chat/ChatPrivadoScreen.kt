@@ -78,7 +78,7 @@ fun ChatPrivadoScreen(
                     viewModel.addMap(nombreDelOtro, Mensaje(usario = nombreMio, mensaje = mensaje))
                 },
                 closeConnection = {
-                    viewModel.sendMessage("EXI,")
+                    viewModel.sendMessage("EXI")
                     viewModel.resetStates()
                     currentScreen.value = Screen.NickName
                 },
@@ -258,7 +258,7 @@ fun AppBottomBar1(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
                     .padding(end = 10.dp)
                     .onKeyEvent { keyEvent ->
                         if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
-                            val mensaje = "PRV,$usuarioDelOtro,$texto"
+                            val mensaje = "PRV $usuarioDelOtro,$texto"
                             onPromtChange(mensaje)
                             texto = ""
                             true

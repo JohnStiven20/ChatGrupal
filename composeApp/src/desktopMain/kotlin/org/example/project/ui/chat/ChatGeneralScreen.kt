@@ -256,13 +256,16 @@ fun ContenidoMensaje(
 
             items(mensajes) { message ->
 
-                val comando = message.substring(0, message.indexOf(",")).uppercase()
+                val comando = message.substring(0, 3)
 
                 if (comando == "CHT") {
 
-                    val indetificador =
-                        message.substring(message.indexOf(",") + 1, message.lastIndexOf(",")).trim()
-                    val mensaje = message.substring(message.lastIndexOf(",") + 1, message.length)
+                    println("DENTRO DEL CHAT GENERAL ${message.substring(4, message.length)}")
+
+                    val todos = message.substring(4, message.length)
+
+                    val indetificador = todos.substring(0, todos.indexOf(","))
+                    val mensaje = todos.substring(todos.lastIndexOf(",") + 1, todos.length)
 
                     if (indetificador == nickname) {
                         Mensaje(
@@ -345,7 +348,7 @@ fun AppBottomBar(onEnviarMensaje: (String) -> Unit) {
 
                         if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
                             if (texto.isNotBlank()) {
-                                onEnviarMensaje("MSG,$texto")
+                                onEnviarMensaje("MSG $texto")
                                 texto = ""
 
                             }

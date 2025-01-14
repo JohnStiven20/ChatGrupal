@@ -40,6 +40,7 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
     var mostrarError by remember { mutableStateOf(false) }
     val estadoConexion by viewModel.estadoConexion.collectAsState()
     var mensajeError by remember { mutableStateOf("") }
+    var nombreLocal by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit, estadoConexion) {
         viewModel.recibirMensajeServidor()
@@ -56,8 +57,8 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
         Spacer(modifier = Modifier.height(10.dp))
 
         TextField(
-            value = nickName,
-            onValueChange = { viewModel.onChange(nickName = it) },
+            value = nombreLocal,
+            onValueChange = { nombreLocal = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp).border(
@@ -80,10 +81,11 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
 
         Button(
             onClick = {
+                viewModel.onChange(nombreLocal.trim())
                 viewModel.connection { conectado ->
                     println("Conectado: $conectado")
                     if (conectado) {
-                        val message = "CON,$nickName"
+                        val message = "CON $nickName"
                         println("Mensaje enviado: $message")
                         viewModel.encender()
                         viewModel.sendMessage(message = message)
@@ -99,16 +101,18 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
         if (mensajeServidor != "") {
             println("Entrada en NickNameScreen: $mensajeServidor")
 
-            val comando = mensajeServidor.substring(0, mensajeServidor.indexOf(","))
+            val comando = mensajeServidor.split(" ")[0]
+            val mensaje =
+                mensajeServidor.substring(mensajeServidor.indexOf(" ") + 1, mensajeServidor.length)
 
             if (comando == "NOK") {
                 mostrarError = true
                 viewModel.onChangeEntrada("")
                 viewModel.onChange("")
-                mensajeError = "Nickname ya en uso"
+                mensajeError = mensaje
             } else if (comando == "OK") {
                 pantallaActual.value = Screen.ChatGeneral
-                viewModel.sendMessage("LUS,")
+                viewModel.sendMessage("LUS")
             }
         }
     }

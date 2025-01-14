@@ -19,8 +19,6 @@ class ViewModel(
     val nickname: StateFlow<String> = _nickName
     private var _entrada = MutableStateFlow("")
     var entrada: StateFlow<String> = _entrada
-    private var _entradaChat = MutableStateFlow("")
-    var entradaChat: StateFlow<String> = _entradaChat
 
     private var _listaUsarios = MutableStateFlow("")
     var listaUsuarios: StateFlow<String> = _listaUsarios
@@ -95,20 +93,22 @@ class ViewModel(
 
                         if (!response.isNullOrBlank()) {
                             println("Mensaje recibido en el Metodo recibirMensaje: $response")
-                            val comando = response.substring(0, response.indexOf(",")).uppercase()
+
+                            val comando = if (response.startsWith("OK")) {"OK"} else response.substring(0, 3)
+
+                            println("Comando recibido: $comando")
 
                             if (comando == "CHT") {
-                                _entradaChat.update { response }
                                 agregarMensaje(response)
                             } else if (comando == "OK" || comando == "NOK") {
                                 println("Entrada en recibirMensaje ESPAÑA: $response")
-                                _entrada.update { response.uppercase() }
+                                _entrada.update { response }
                             } else if (comando == "LST") {
                                 _listaUsarios.update { response }
                             } else if (comando.uppercase() == "PRV") {
 
                                 val nombre = response.substring(
-                                    response.indexOf(",") + 1,
+                                    response.indexOf(" ") + 1,
                                     response.lastIndexOf(",")
                                 )
 
@@ -118,21 +118,18 @@ class ViewModel(
                                 )
 
                                 onAtPrivado(nombre, Mensaje(usario = nombre, mensaje = mensaje));
-                            } else if (comando == "POK") {
-
-                            } else if (comando == "NOP") {
-
                             } else if (comando == "EXI") {
-                                println("Ha entrado en EXI")
-                                val usuario = response.substring(response.lastIndexOf(",")+ 1, response.length)
-                                println("$usuario esconparado con ${_nickName.value}")
+
+                                val usuario = response.substring(response.lastIndexOf(" ")+ 1, response.length)
+
+                                println("Usuario eliminado: $usuario")
+                                println("Usuario actual: ${_nickName.value}")
                                 if (usuario == _nickName.value) {
-                                    println("Usuario $usuario ha salido del chat")
                                     _nickName.update {""}
                                     closeConnection()
-                                    _estadoConexion.update { false }
+                                    _estadoConexion.upgit add date { false }
                                 } else {
-                                    sendMessage("LUS,")
+                                    sendMessage("LUS")
                                 }
                             }
                         }
@@ -179,9 +176,7 @@ class ViewModel(
         }
     }
 
-    fun onChangeChat(entrada: String) {
-        this._entradaChat.update { entrada }
-    }
+
 
     fun onChangeEntrada(entrada: String) {
         this._entrada.update { entrada }
@@ -197,7 +192,6 @@ class ViewModel(
 
     fun resetStates() {
         _entrada.value = ""
-        _entradaChat.value = ""
         _listaUsarios.value = ""
         _nickNamePrivado.value = ""
         _mapaUsuarios.value = mutableMapOf()
