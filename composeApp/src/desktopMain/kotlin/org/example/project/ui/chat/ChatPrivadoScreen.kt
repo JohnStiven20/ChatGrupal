@@ -1,5 +1,6 @@
 package org.example.project.ui.chat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -42,13 +45,17 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinproject.composeapp.generated.resources.Res
+import kotlinproject.composeapp.generated.resources.img
 import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.Mensaje
 import org.example.project.ui.nickname.ViewModel
+import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
@@ -71,7 +78,7 @@ fun ChatPrivadoScreen(
                     viewModel.setCambioUsuario(nombre = it)
                 }
             )
-            ChatScreen1(
+            ChatScreenPrivado(
                 onPromtChange = {
                     viewModel.sendMessagePrivado(it)
                     val mensaje = it.substring(it.lastIndexOf(",") + 1, it.length)
@@ -92,7 +99,7 @@ fun ChatPrivadoScreen(
 
 
 @Composable
-fun ChatScreen1(
+fun ChatScreenPrivado(
     onPromtChange: (String) -> Unit,
     closeConnection: () -> Unit,
     usuarioDelOtro: String,
@@ -104,10 +111,10 @@ fun ChatScreen1(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AppBar1(adress = usuarioDelOtro, closeConnection = closeConnection)
+            AppBarPrivado(adress = usuarioDelOtro, closeConnection = closeConnection)
         },
         content = { padding ->
-            ContenidoMensaje1(
+            ContenidoMensajePrivado(
                 padding = padding,
                 mapaUsuarios = mapaUsuarios,
                 nombreMio = usuarioMio,
@@ -116,14 +123,9 @@ fun ChatScreen1(
             )
         },
         bottomBar = {
-            AppBottomBar1(
+            AppBottomBarPrivado(
                 onPromtChange = onPromtChange,
                 usuarioDelOtro = usuarioDelOtro,
-            )
-        },
-        floatingActionButton = {
-            BotonFlotante1(
-                closeConnection = closeConnection
             )
         }
     )
@@ -131,7 +133,7 @@ fun ChatScreen1(
 
 
 @Composable
-fun AppBar1(adress: String, closeConnection: () -> Unit) {
+fun AppBarPrivado(adress: String, closeConnection: () -> Unit) {
     TopAppBar(
         backgroundColor = Color.DarkGray,
         title = {
@@ -139,14 +141,19 @@ fun AppBar1(adress: String, closeConnection: () -> Unit) {
         },
         actions = {
             IconButton(onClick = closeConnection) {
-                Text("Hola")
+                Image(
+                    modifier = Modifier.size(36.dp).clip(CircleShape),
+                    painter = painterResource(resource = Res.drawable.img) ,
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     )
 }
 
 @Composable
-fun ContenidoMensaje1(
+fun ContenidoMensajePrivado(
     padding: PaddingValues,
     nombreDelOtro: String,
     nombreMio: String,
@@ -155,12 +162,6 @@ fun ContenidoMensaje1(
 
     val listState = rememberLazyListState()
     val messages = mapaUsuarios[nombreDelOtro] ?: listOf()
-
-    println("-------------------------------------------------------------")
-    println("Usuarios disponibles: ${mapaUsuarios.keys}") // Depuración
-    println("Mensajes de $nombreDelOtro: ${mapaUsuarios[nombreDelOtro]}") // Depuración
-    println("Mensajes actualizados: $messages") // Depuración
-    println("-------------------------------------------------------------")
 
     LaunchedEffect(messages) {
         if (messages.isNotEmpty()) {
@@ -181,7 +182,7 @@ fun ContenidoMensaje1(
             val mensaje = message.mensaje
 
             if (identificador == nombreMio) {
-                Mensaje1(
+                MensajePrivado(
                     text = mensaje,
                     nicknamee = identificador,
                     alignment = Alignment.TopEnd,
@@ -189,7 +190,7 @@ fun ContenidoMensaje1(
                     color = Color.Blue
                 )
             } else {
-                Mensaje1(
+                MensajePrivado(
                     text = mensaje,
                     nicknamee = identificador,
                     alignment = Alignment.TopStart,
@@ -204,7 +205,7 @@ fun ContenidoMensaje1(
 
 
 @Composable
-fun Mensaje1(
+fun MensajePrivado(
     text: String,
     alignment: Alignment,
     alignmentText: Alignment.Horizontal = Alignment.End,
@@ -240,7 +241,7 @@ fun Mensaje1(
 }
 
 @Composable
-fun AppBottomBar1(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
+fun AppBottomBarPrivado(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
 
     var texto by remember { mutableStateOf("") }
 
@@ -283,7 +284,11 @@ fun AppBottomBar1(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(25.dp))
                     .background(Color.DarkGray),
-                onClick = {},
+                onClick = {
+                    val mensaje = "PRV $usuarioDelOtro,$texto"
+                    onPromtChange(mensaje)
+                    texto = ""
+                },
                 content = {
                     Icon(
                         Icons.AutoMirrored.Default.Send,
@@ -291,20 +296,6 @@ fun AppBottomBar1(onPromtChange: (String) -> Unit, usuarioDelOtro: String) {
                         tint = Color.White
                     )
                 }
-            )
-        }
-    )
-}
-
-@Composable
-fun BotonFlotante1(closeConnection: () -> Unit) {
-    IconButton(
-        modifier = Modifier.clip(shape = RoundedCornerShape(25.dp))
-            .background(Color.DarkGray), onClick = closeConnection, content = {
-            Icon(
-                Icons.AutoMirrored.Default.Send,
-                contentDescription = null,
-                tint = Color.White
             )
         }
     )

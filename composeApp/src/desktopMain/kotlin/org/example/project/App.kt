@@ -11,17 +11,14 @@ import org.example.project.ui.nickname.ViewModel
 
 @Composable
 @Preview()
-fun App() {
-
-    val socketRepository = SocketRepository()
+fun App(viewModel: ViewModel) {
 
     MaterialTheme(
         colors = MaterialTheme.colors,
         typography = MaterialTheme.typography,
         shapes = MaterialTheme.shapes
     ) {
-        val nickNameViewModel = ViewModel(socketRepository, CoroutineDispatchers())
-        AppNavigation(nickNameViewModel)
+        AppNavigation(viewModel)
     }
 }
 

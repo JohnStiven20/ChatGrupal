@@ -1,5 +1,6 @@
 package org.example.project.ui.chat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -22,6 +25,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -41,16 +45,25 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.Key.Companion.S
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinproject.composeapp.generated.resources.Res
+import kotlinproject.composeapp.generated.resources.compose_multiplatform
+import kotlinproject.composeapp.generated.resources.img
 import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.ViewModel
+import org.jetbrains.compose.resources.painterResource
+import kotlin.math.abs
+import kotlin.random.Random
 
 
 @Composable
@@ -229,7 +242,12 @@ fun AppBar(closeConnection: () -> Unit) {
             IconButton(
                 onClick = closeConnection
             ) {
-                Text("Hola")
+                Image(
+                    modifier = Modifier.size(36.dp).clip(CircleShape),
+                    painter = painterResource(resource = Res.drawable.img) ,
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     )
@@ -241,8 +259,20 @@ fun ContenidoMensaje(
     nickname: String,
     mensajes: MutableList<String>
 ) {
-
     val listState = rememberLazyListState()
+
+    val chatColors = listOf(
+        Color(0xFF89CFF0),
+        Color(0xFF77DD77),
+        Color(0xFFB19CD9),
+        Color(0xFFFFB3BA),
+        Color(0xFFF4D03F),
+        Color(0xFFFF9AA2),
+        Color(0xFF88D8B0),
+        Color(0xFFC3B1E1),
+        Color(0xFFFFDAC1),
+        Color(0xFF40E0D0)
+    )
 
     LaunchedEffect(mensajes) {
         if (mensajes.isNotEmpty()) {
@@ -250,45 +280,41 @@ fun ContenidoMensaje(
         }
     }
 
+
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(padding).background(Color.LightGray),
-        content = {
-
-            items(mensajes) { message ->
-
-                val comando = message.substring(0, 3)
-
-                if (comando == "CHT") {
-
-                    println("DENTRO DEL CHAT GENERAL ${message.substring(4, message.length)}")
-
-                    val todos = message.substring(4, message.length)
-
-                    val indetificador = todos.substring(0, todos.indexOf(","))
-                    val mensaje = todos.substring(todos.lastIndexOf(",") + 1, todos.length)
-
-                    if (indetificador == nickname) {
-                        Mensaje(
-                            text = mensaje,
-                            nicknamee = indetificador,
-                            alignment = Alignment.TopEnd,
-                            alignmentText = Alignment.Start,
-                            color = Color.Blue
-                        )
-                    } else {
-                        Mensaje(
-                            text = mensaje,
-                            nicknamee = indetificador,
-                            alignment = Alignment.TopStart,
-                            alignmentText = Alignment.Start,
-                            color = Color.Magenta
-                        )
-                    }
-                }
-            }
-        },
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .background(Color.LightGray),
         state = listState
-    )
+    ) {
+        items(mensajes) { message ->
+
+            val comando = message.substring(0, 3)
+
+            if (comando == "CHT") {
+                val todos = message.substring(4)
+                val identificador = todos.substringBefore(",")
+                val mensaje = todos.substringAfterLast(",")
+
+                val messageColor = if (identificador == nickname) {
+                    Color.Blue
+                } else {
+                    val index = abs(identificador.hashCode()) % chatColors.size
+                    chatColors[index]
+                }
+
+                Mensaje(
+                    text = mensaje,
+                    nicknamee = identificador,
+                    alignment = if (identificador == nickname) Alignment.TopEnd else Alignment.TopStart,
+                    alignmentText = Alignment.Start,
+                    color = messageColor
+                )
+            }
+        }
+    }
 }
 
 @Composable

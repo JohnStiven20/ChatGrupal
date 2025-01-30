@@ -2,6 +2,7 @@ package org.example.project.ui.nickname
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -12,7 +13,6 @@ import org.example.project.repository.SocketRepository
 
 class ViewModel(
     private val socketRepository: SocketRepository,
-    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     private val _nickName = MutableStateFlow("")
@@ -39,11 +39,11 @@ class ViewModel(
     val listaMensajes:StateFlow<MutableList<String>> = _listaMensajes
 
     fun connection(
-        dirrecion: String = "192.168.0.18",
+        dirrecion: String = "192.168.0.20",
         puerto: Int = 4444,
         onConnected: (Boolean) -> Unit
     ) {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val estadoConectado = socketRepository.connection(dirrecion, puerto)
 
@@ -127,7 +127,7 @@ class ViewModel(
                                 if (usuario == _nickName.value) {
                                     _nickName.update {""}
                                     closeConnection()
-                                    _estadoConexion.upgit add date { false }
+                                    _estadoConexion.update { false }
                                 } else {
                                     sendMessage("LUS")
                                 }
@@ -196,6 +196,7 @@ class ViewModel(
         _nickNamePrivado.value = ""
         _mapaUsuarios.value = mutableMapOf()
         _estadoConexion.update { true }
+        _listaMensajes.value = mutableListOf()
     }
 
     fun getInnerAddress(): String {

@@ -39,7 +39,6 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
     val mensajeServidor by viewModel.entrada.collectAsState()
     var mostrarError by remember { mutableStateOf(false) }
     val estadoConexion by viewModel.estadoConexion.collectAsState()
-    var mensajeError by remember { mutableStateOf("") }
     var nombreLocal by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit, estadoConexion) {
@@ -75,7 +74,7 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
         Spacer(modifier = Modifier.height(10.dp))
 
         if (mostrarError) {
-            mostrarMensajeError(mensajeError)
+            mostrarMensajeError("El nombre ya existe")
             mostrarError = false
         }
 
@@ -99,17 +98,13 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
         }
 
         if (mensajeServidor != "") {
-            println("Entrada en NickNameScreen: $mensajeServidor")
 
             val comando = mensajeServidor.split(" ")[0]
-            val mensaje =
-                mensajeServidor.substring(mensajeServidor.indexOf(" ") + 1, mensajeServidor.length)
 
             if (comando == "NOK") {
                 mostrarError = true
                 viewModel.onChangeEntrada("")
                 viewModel.onChange("")
-                mensajeError = mensaje
             } else if (comando == "OK") {
                 pantallaActual.value = Screen.ChatGeneral
                 viewModel.sendMessage("LUS")
