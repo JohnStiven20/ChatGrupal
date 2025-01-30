@@ -3,6 +3,7 @@ package org.example.project.ui.nickname
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -121,6 +122,7 @@ class ViewModel(
                                 if (usuario == _nickName.value) {
                                     _nickName.update {""}
                                     closeConnection()
+                                    resetStates()
                                     _estadoConexion.update { false }
                                 } else {
                                     sendMessage("LUS")
@@ -128,7 +130,7 @@ class ViewModel(
                             }
                         }
                     }.onFailure { exception ->
-                        _estadoConexion.update { true }
+                        _estadoConexion.update { false }
                         println("Error al recibir el mensaje: ${exception.message}")
                     }
 

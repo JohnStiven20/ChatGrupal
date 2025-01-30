@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import kotlinproject.composeapp.generated.resources.Res
 import kotlinproject.composeapp.generated.resources.compose_multiplatform
 import kotlinproject.composeapp.generated.resources.img
+import kotlinx.coroutines.delay
 import org.example.project.navigation.Screen
 import org.example.project.ui.nickname.ViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -92,7 +93,6 @@ fun ChatGeneralScreen(
                 },
                 onCerrarConexion = {
                     viewModel.sendMessage("EXI")
-                    viewModel.resetStates()
                     pantallaActual.value = Screen.NickName
                 },
                 nickname = nickname,
@@ -102,21 +102,6 @@ fun ChatGeneralScreen(
         }
     )
 }
-
-/**
- * Representa una lista de chats en una columna  con estilo básico.
- *
- * @param users Lista de nombres de usuarios que se mostrarán como elementos de la lista.
- *
- * Este composable crea una columna  (`LazyColumn`) que ocupa toda la altura disponible y
- * tiene un ancho fijo de 200dp. El fondo es de color gris claro y contiene un borde negro.
- *
- * Contenido:
- * - Un encabezado con el texto "Chats".
- * - Una lista dinámica de tarjetas de usuario, generada a partir de los elementos en la lista `users`.
- *
- * La lista utiliza `verticalArrangement` para espaciar los elementos uniformemente.
- */
 
 @Composable
 fun ChatIzquierda(

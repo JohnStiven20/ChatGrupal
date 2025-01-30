@@ -52,9 +52,6 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
         }
     }
 
-
-
-
     suspend fun receiveMessage(): Result<String?> {
         return withContext(dispatchers.io) {
             try {

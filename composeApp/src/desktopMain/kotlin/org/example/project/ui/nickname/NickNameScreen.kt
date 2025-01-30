@@ -108,6 +108,7 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
             } else if (comando == "OK") {
                 pantallaActual.value = Screen.ChatGeneral
                 viewModel.sendMessage("LUS")
+                viewModel.sendMessage("MSG $nickName ha entrado al chat")
             }
         }
     }

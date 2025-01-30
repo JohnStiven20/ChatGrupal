@@ -27,7 +27,7 @@ fun AppNavigation(viewModel: ViewModel) {
         Screen.ChatPrivado -> {
             ChatPrivadoScreen(
                 viewModel = viewModel,
-                currentScreen = pantallaActual
+                pantallaActual = pantallaActual
             )
         }
     }

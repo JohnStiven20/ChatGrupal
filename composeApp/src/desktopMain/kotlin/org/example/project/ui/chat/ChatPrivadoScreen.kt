@@ -61,9 +61,10 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun ChatPrivadoScreen(
     viewModel: ViewModel,
-    currentScreen: MutableState<Screen>
+    pantallaActual: MutableState<Screen>
 ) {
     val nombreDelOtro by viewModel.nicknamePrivado.collectAsState()
+    val  nickname by viewModel.nickname.collectAsState()
     val nombreMio by viewModel.nickname.collectAsState()
     val usuarios by viewModel.listaUsuarios.collectAsState()
     val mapaUsuarios by viewModel.mapaUsuarios.collectAsState()
@@ -73,7 +74,7 @@ fun ChatPrivadoScreen(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         content = {
-            ChatIzquierda(usuarios, nombreMio, currentScreen,
+            ChatIzquierda(usuarios, nombreMio, pantallaActual,
                 onClick = {
                     viewModel.setCambioUsuario(nombre = it)
                 }
@@ -86,8 +87,7 @@ fun ChatPrivadoScreen(
                 },
                 closeConnection = {
                     viewModel.sendMessage("EXI")
-                    viewModel.resetStates()
-                    currentScreen.value = Screen.NickName
+                    pantallaActual.value = Screen.NickName
                 },
                 usuarioDelOtro = nombreDelOtro,
                 usuarioMio = nombreMio,
