@@ -29,9 +29,6 @@ class ViewModel(
     private val _mapaUsuarios = MutableStateFlow<MutableMap<String, MutableList<Mensaje>>>(mutableMapOf())
     val mapaUsuarios: StateFlow<MutableMap<String, MutableList<Mensaje>>> = _mapaUsuarios
 
-    private val _nickName1 = MutableStateFlow("")
-    val nickname1: StateFlow<String> = _nickName1
-
     private val _estadoConexion = MutableStateFlow(true)
     val estadoConexion: StateFlow<Boolean> = _estadoConexion
 
@@ -39,11 +36,11 @@ class ViewModel(
     val listaMensajes:StateFlow<MutableList<String>> = _listaMensajes
 
     fun connection(
-        dirrecion: String = "192.168.0.20",
+        dirrecion: String = "localhost",
         puerto: Int = 4444,
         onConnected: (Boolean) -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch() {
             try {
                 val estadoConectado = socketRepository.connection(dirrecion, puerto)
 
@@ -92,16 +89,14 @@ class ViewModel(
                     result.onSuccess { response ->
 
                         if (!response.isNullOrBlank()) {
-                            println("Mensaje recibido en el Metodo recibirMensaje: $response")
 
                             val comando = if (response.startsWith("OK")) {"OK"} else response.substring(0, 3)
 
-                            println("Comando recibido: $comando")
-
                             if (comando == "CHT") {
+
                                 agregarMensaje(response)
+
                             } else if (comando == "OK" || comando == "NOK") {
-                                println("Entrada en recibirMensaje ESPAÑA: $response")
                                 _entrada.update { response }
                             } else if (comando == "LST") {
                                 _listaUsarios.update { response }
@@ -118,12 +113,11 @@ class ViewModel(
                                 )
 
                                 onAtPrivado(nombre, Mensaje(usario = nombre, mensaje = mensaje));
+
                             } else if (comando == "EXI") {
 
                                 val usuario = response.substring(response.lastIndexOf(" ")+ 1, response.length)
 
-                                println("Usuario eliminado: $usuario")
-                                println("Usuario actual: ${_nickName.value}")
                                 if (usuario == _nickName.value) {
                                     _nickName.update {""}
                                     closeConnection()
@@ -134,6 +128,7 @@ class ViewModel(
                             }
                         }
                     }.onFailure { exception ->
+                        _estadoConexion.update { true }
                         println("Error al recibir el mensaje: ${exception.message}")
                     }
 
@@ -146,37 +141,32 @@ class ViewModel(
 
     private fun onAtPrivado(key: String, mensaje: Mensaje) {
         _mapaUsuarios.update { currentMap ->
-            val updatedMap = currentMap.toMutableMap() // Crea una copia inmutable
+            val updatedMap = currentMap.toMutableMap()
             val mensajes = updatedMap[key]?.toMutableList() ?: mutableListOf()
             mensajes.add(mensaje)
             updatedMap[key] = mensajes
-            println("Mapa emitido al flujo: $updatedMap") // LOG para verificar emisión
-            updatedMap // Retorna el nuevo mapa
+            updatedMap
         }
     }
 
     private fun agregarMensaje(mensaje: String) {
-        _listaMensajes.update { currentList ->
-            val updatedList = currentList.toMutableList()
-            updatedList.add(mensaje)
-            updatedList
+        _listaMensajes.update { lista ->
+            val listaActualizado = lista.toMutableList()
+            listaActualizado.add(mensaje)
+            listaActualizado
         }
     }
 
 
     fun addMap(clave: String, valor: Mensaje) {
-
         _mapaUsuarios.update { currentMap ->
-            val updatedMap = currentMap.toMutableMap() // Crea una copia inmutable
+            val updatedMap = currentMap.toMutableMap()
             val mensajes = updatedMap[clave]?.toMutableList() ?: mutableListOf()
             mensajes.add(valor)
             updatedMap[clave] = mensajes
-            println("Mapa emitido al flujo: $updatedMap") // LOG para verificar emisión
-            updatedMap // Retorna el nuevo mapa
+            updatedMap
         }
     }
-
-
 
     fun onChangeEntrada(entrada: String) {
         this._entrada.update { entrada }
@@ -198,9 +188,4 @@ class ViewModel(
         _estadoConexion.update { true }
         _listaMensajes.value = mutableListOf()
     }
-
-    fun getInnerAddress(): String {
-        return socketRepository.getInnerAddress()
-    }
-
 }

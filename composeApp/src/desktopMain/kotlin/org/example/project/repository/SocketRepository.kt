@@ -14,7 +14,6 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
 
     suspend fun connection(dirrecion: String, puerto: Int): Boolean {
 
-        println("Estado Conexion: $estadoConexion")
         return withContext(dispatchers.main) {
             try {
                 if (!estadoConexion) {
@@ -29,13 +28,13 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
                     } else {
                         throw RuntimeException("Error: InputStream o OutputStream es null")
                     }
-                    println("Intentando conectar al servidor...: ${socket?.isConnected ?: false}")
                     true
                 } else {
                     true
                 }
 
             } catch (e: Exception) {
+                estadoConexion = false
                 throw RuntimeException("Error al conectar al servidor: ${e.message}")
             }
         }
@@ -77,19 +76,5 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
         } catch (e: Exception) {
             throw RuntimeException("Error al cerrar la conexión: ${e.message}")
         }
-
     }
-
-
-    fun getInnerAddress(): String {
-
-        val inetAddress = socket?.inetAddress?.hostAddress
-
-        if (inetAddress != null) {
-            return inetAddress
-        } else {
-            throw RuntimeException("Error: Socket es null")
-        }
-    }
-
 }
