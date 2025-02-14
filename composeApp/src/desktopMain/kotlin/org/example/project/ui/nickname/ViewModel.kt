@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.example.project.repository.CoroutineDispatchers
 import org.example.project.repository.SocketRepository
+import org.example.project.utils.LoggerUtil
 
 
 class ViewModel(
@@ -94,9 +95,7 @@ class ViewModel(
                             val comando = if (response.startsWith("OK")) {"OK"} else response.substring(0, 3)
 
                             if (comando == "CHT") {
-
                                 agregarMensaje(response)
-
                             } else if (comando == "OK" || comando == "NOK") {
                                 _entrada.update { response }
                             } else if (comando == "LST") {
@@ -112,20 +111,23 @@ class ViewModel(
                                     response.lastIndexOf(",") + 1,
                                     response.length
                                 )
-
                                 onAtPrivado(nombre, Mensaje(usario = nombre, mensaje = mensaje));
 
                             } else if (comando == "EXI") {
 
-                                val usuario = response.substring(response.lastIndexOf(" ")+ 1, response.length)
+                                synchronized(this) {  // 🔹 Bloquea el acceso concurrente
+                                    val usuario = response.substringAfterLast(" ").trim()
 
-                                if (usuario == _nickName.value) {
-                                    _nickName.update {""}
-                                    closeConnection()
-                                    resetStates()
-                                    _estadoConexion.update { false }
-                                } else {
-                                    sendMessage("LUS")
+                                    if (usuario == _nickName.value) {  // ✅ Primero verificar si es el usuario actual
+                                        println("DEBUG: Usuario actual se ha desconectado -> $usuario")
+                                        _nickName.update { "" }
+                                        closeConnection()
+                                        resetStates()
+                                        _estadoConexion.update { false }
+                                    } else {
+                                        println("DEBUG: Otro usuario salió -> $usuario, enviando LUS")
+                                        sendMessage("LUS")  // ✅ Ahora solo se ejecuta si NO es el usuario actual
+                                    }
                                 }
                             }
                         }
@@ -183,6 +185,7 @@ class ViewModel(
     }
 
     fun resetStates() {
+        LoggerUtil.info("Restableciendo estados de la aplicación.")
         _entrada.value = ""
         _listaUsarios.value = ""
         _nickNamePrivado.value = ""

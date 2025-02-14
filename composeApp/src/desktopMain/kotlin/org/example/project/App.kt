@@ -7,11 +7,14 @@ import androidx.compose.runtime.Composable
 import org.example.project.repository.CoroutineDispatchers
 import org.example.project.repository.SocketRepository
 import org.example.project.ui.nickname.ViewModel
+import java.util.logging.Logger
 
 
 @Composable
 @Preview()
 fun App(viewModel: ViewModel) {
+
+
 
     MaterialTheme(
         colors = MaterialTheme.colors,
@@ -21,7 +24,6 @@ fun App(viewModel: ViewModel) {
         AppNavigation(viewModel)
     }
 }
-
 
 
 

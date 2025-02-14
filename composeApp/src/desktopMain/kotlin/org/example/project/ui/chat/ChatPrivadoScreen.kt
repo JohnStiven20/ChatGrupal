@@ -86,7 +86,11 @@ fun ChatPrivadoScreen(
                     viewModel.addMap(nombreDelOtro, Mensaje(usario = nombreMio, mensaje = mensaje))
                 },
                 closeConnection = {
-                    viewModel.sendMessage("EXI")
+                    if (viewModel.estadoConexion.value) {
+                        viewModel.sendMessage("EXI")
+                    } else {
+                        println("Intento de enviar 'EXI' en una conexión cerrada.")
+                    }
                     pantallaActual.value = Screen.NickName
                 },
                 usuarioDelOtro = nombreDelOtro,

@@ -1,0 +1,4 @@
+feb. 13, 2025 8:53:18 P. M. org.example.project.utils.LoggerUtil info
+INFO: Restableciendo estados de la aplicación.
+feb. 13, 2025 8:55:56 P. M. org.example.project.utils.LoggerUtil info
+INFO: Restableciendo estados de la aplicación.

@@ -42,36 +42,53 @@ class SocketRepository(private val dispatchers: CoroutineDispatchers = Coroutine
     }
 
     suspend fun sendMessage(message: String) {
+        println(message + " VIVA ESPAÑA")
         return withContext(dispatchers.io) {
             try {
-                salida?.writeUTF(message)
-                salida?.flush()
+                if (socket?.isClosed == false && salida != null) {
+                    salida!!.writeUTF(message)
+                    salida!!.flush()
+                } else {
+                    println("Error: Intento de escribir en un socket cerrado.")
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                println("Error al enviar mensaje: ${e.message}")
             }
         }
     }
 
+
     suspend fun receiveMessage(): Result<String?> {
         return withContext(dispatchers.io) {
             try {
-                Result.success(entrada?.readUTF())
+                if (entrada != null) {
+                    Result.success(entrada!!.readUTF())
+                } else {
+                    Result.failure(Exception("La conexión está cerrada."))
+                }
             } catch (e: Exception) {
+                println("Error al recibir mensaje: ${e.message}")
                 Result.failure(e)
             }
         }
     }
 
 
+
     fun closeConnection() {
         try {
-            entrada?.close()
-            salida?.close()
-            socket?.close()
-            estadoConexion = false
-
+            if (socket != null && !socket!!.isClosed) {
+                entrada?.close()
+                salida?.close()
+                socket?.close()
+                estadoConexion = false
+                println("Conexión cerrada correctamente.")
+            } else {
+                println("El socket ya estaba cerrado.")
+            }
         } catch (e: Exception) {
-            throw RuntimeException("Error al cerrar la conexión: ${e.message}")
+            println("Error al cerrar la conexión: ${e.message}")
         }
     }
+
 }

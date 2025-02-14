@@ -101,14 +101,19 @@ fun NickNameScreen(viewModel: ViewModel, pantallaActual: MutableState<Screen>) {
 
             val comando = mensajeServidor.split(" ")[0]
 
+            println("EL COMANDO DE NICKNAMESCREEN  $comando")
             if (comando == "NOK") {
                 mostrarError = true
                 viewModel.onChangeEntrada("")
                 viewModel.onChange("")
             } else if (comando == "OK") {
+                println("MESSI ERES UN GRANDE")
                 pantallaActual.value = Screen.ChatGeneral
                 viewModel.sendMessage("LUS")
                 viewModel.sendMessage("MSG $nickName ha entrado al chat")
+                viewModel.onChangeEntrada("TY")
+                println("EL COMANDO DE NICKNAMESCREEN  2 $comando")
+
             }
         }
     }
